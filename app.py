@@ -255,6 +255,8 @@ def predict_disease_api(req: PredictRequest):
         "घमोरिया": "skin rash",
         "तेज बुखार": "high fever",
         "सिरदर्द": "severe headache",
+        "सिर दर्द": "severe headache",
+        "सर दर्द": "severe headache",
         "डोकेदुखी": "severe headache",
         "पेट दर्द": "abdominal pain",
         "पेटातील दुखणे": "abdominal pain",
@@ -295,6 +297,7 @@ def predict_disease_api(req: PredictRequest):
         common_cases = {
             "severe headache": "Common Headache",
             "headache": "Common Headache",
+            "high fever": "Common Viral Fever",
             "fever (>101°f)": "Common Viral Fever",
             "mild fever": "Common Viral Fever",
             "nausea/vomiting": "Common Indigestion or Acid Reflux",
