@@ -4,22 +4,14 @@ from fastapi.middleware.cors import CORSMiddleware  # type: ignore
 from fastapi.responses import FileResponse  # type: ignore
 import uvicorn  # type: ignore
 import ml2  # type: ignore
-import google.generativeai as genai  # type: ignore
 import os
 import joblib  # type: ignore
-from google.api_core.exceptions import GoogleAPICallError  # type: ignore
+import requests  # type: ignore
 
-# Configure Gemini API
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-gemini_model = None
-
-if GEMINI_API_KEY:
-    try:
-        genai.configure(api_key=GEMINI_API_KEY)
-        gemini_model = genai.GenerativeModel("gemini-2.0-flash")
-    except Exception as e:
-        print(f"Gemini initialization error: {e}")
-        gemini_model = None
+# Configure Groq API
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
+GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
 
 app = FastAPI(title="Sehat Sathi - Disease Prediction API")
 
@@ -74,7 +66,7 @@ def health_check():
     return {"status": "ok"}
 
 def build_fallback_advice(symptoms, predicted_diseases):
-    """Provide basic non-Gemini guidance when the API is unavailable."""
+    """Provide basic non-LLM guidance when the API is unavailable."""
     symptom_text = ", ".join(symptoms[:4]) if symptoms else "your symptoms"
     disease_text = predicted_diseases[0] if predicted_diseases else "a common illness"
     return (
@@ -226,12 +218,12 @@ def reorder_predictions_for_common_symptoms(symptoms, predictions):
 
     return dict(sorted(adjusted.items(), key=lambda item: item[1], reverse=True))
 
-def get_gemini_advice(symptoms, predicted_diseases):
-    """Use Gemini 2.0 Flash to generate a brief explanation and health advice."""
+def get_groq_advice(symptoms, predicted_diseases):
+    """Use Groq to generate a brief explanation and health advice."""
     fallback = build_fallback_advice(symptoms, predicted_diseases)
-    if not gemini_model:
-        print("Gemini is disabled: missing or invalid API configuration.")
-        return fallback, False, "Gemini is not configured."
+    if not GROQ_API_KEY:
+        print("Groq is disabled: missing API configuration.")
+        return fallback, False, "Groq is not configured."
 
     try:
         prompt = f"""You are a helpful medical AI assistant for an Indian healthcare platform called Sehat Sathi.
@@ -244,23 +236,42 @@ Please provide:
 2. Practical health advice (3-4 bullet points) including home remedies and when to see a doctor.
 
 Keep the response concise, friendly, and easy to understand. Do NOT use markdown formatting. Use plain text only. Always end with a reminder to consult a qualified doctor."""
-
-        response = gemini_model.generate_content(
-            prompt,
-            request_options={"timeout": 20},
+        response = requests.post(
+            GROQ_API_URL,
+            headers={
+                "Authorization": f"Bearer {GROQ_API_KEY}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": GROQ_MODEL,
+                "messages": [
+                    {"role": "system", "content": "You provide short, safe, plain-text health explanations."},
+                    {"role": "user", "content": prompt},
+                ],
+                "temperature": 0.3,
+            },
+            timeout=20,
         )
-        advice_text = getattr(response, "text", "") or ""
+        response.raise_for_status()
+        data = response.json()
+        advice_text = (
+            data.get("choices", [{}])[0]
+            .get("message", {})
+            .get("content", "")
+        )
         if advice_text.strip():
             return advice_text, True, ""
-        return fallback, False, "Gemini returned an empty response."
-    except GoogleAPICallError as e:
+        return fallback, False, "Groq returned an empty response."
+    except requests.HTTPError as e:
         error_message = str(e)
-        print(f"Gemini API error: {error_message}")
-        if "quota" in error_message.lower() or "429" in error_message:
-            return fallback, False, "Gemini quota exceeded for the current API key."
+        print(f"Groq API error: {error_message}")
+        if getattr(e.response, "status_code", None) == 401:
+            return fallback, False, "Groq API key is invalid."
+        if getattr(e.response, "status_code", None) == 429:
+            return fallback, False, "Groq rate limit exceeded for the current API key."
         return fallback, False, error_message
     except Exception as e:
-        print(f"Gemini API error: {e}")
+        print(f"Groq API error: {e}")
         return fallback, False, str(e)
 
 @app.post("/predict")
@@ -412,8 +423,8 @@ def predict_disease_api(req: PredictRequest):
         }
         if single in common_cases:
             disease_name = common_cases[single]
-            # Get Gemini advice for the common case too
-            advice, advice_available, advice_error = get_gemini_advice([single], [disease_name])
+            # Get Groq advice for the common case too
+            advice, advice_available, advice_error = get_groq_advice([single], [disease_name])
             return {
                 "detected_language": lang,
                 "matched_symptoms": valid_symptoms,
@@ -425,7 +436,7 @@ def predict_disease_api(req: PredictRequest):
 
     common_case_predictions = get_common_case_prediction(valid_symptoms)
     if common_case_predictions:
-        advice, advice_available, advice_error = get_gemini_advice(valid_symptoms, common_case_predictions)
+        advice, advice_available, advice_error = get_groq_advice(valid_symptoms, common_case_predictions)
         return {
             "detected_language": lang,
             "matched_symptoms": valid_symptoms,
@@ -449,8 +460,8 @@ def predict_disease_api(req: PredictRequest):
         top_results.append({"disease": display_name})
         disease_names.append(display_name)
     
-    # Get Gemini advice
-    advice, advice_available, advice_error = get_gemini_advice(valid_symptoms, disease_names)
+    # Get Groq advice
+    advice, advice_available, advice_error = get_groq_advice(valid_symptoms, disease_names)
         
     return {
         "detected_language": lang,
