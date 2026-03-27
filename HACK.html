@@ -3057,11 +3057,15 @@
       let reply = "";
       let responseLang = 'en-IN';
       try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000);
         const res = await fetch('/predict', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: text })
+          body: JSON.stringify({ text: text }),
+          signal: controller.signal
         });
+        clearTimeout(timeoutId);
 
         if (!res.ok) {
           const err = await res.json();
@@ -3099,7 +3103,9 @@
         }
       } catch (e) {
         console.error(e);
-        reply = "Sorry, the AI prediction server is currently down. Please ensure the backend is running.";
+        reply = e.name === 'AbortError'
+          ? "The server is taking too long to respond. If this is Render free tier, it may be waking up. Please wait a moment and try again."
+          : "Sorry, the AI prediction server is currently down. Please ensure the backend is running.";
       }
 
       if (!document.getElementById('voiceResponse').innerHTML.includes('<strong>')) {
