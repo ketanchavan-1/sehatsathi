@@ -6,9 +6,14 @@ import json
 import os
 import sys
 import tempfile
-import sounddevice as sd  # type: ignore
-from scipy.io.wavfile import write  # type: ignore
-import speech_recognition as sr  # type: ignore
+try:
+    import sounddevice as sd  # type: ignore
+    from scipy.io.wavfile import write  # type: ignore
+    import speech_recognition as sr  # type: ignore
+except Exception:
+    sd = None  # type: ignore
+    write = None  # type: ignore
+    sr = None  # type: ignore
 
 # Fix Windows console encoding for Hindi/Marathi output
 sys.stdout.reconfigure(encoding="utf-8")  # type: ignore
@@ -97,6 +102,10 @@ def transliterate_to_devanagari(text):
 
 def get_voice_input(lang):
     """Capture audio from microphone and convert to text using Google STT."""
+    if sd is None or write is None or sr is None:
+        print("Voice input libraries are unavailable in this environment.")
+        return ""
+
     print(VOICE_PROMPTS.get(lang, VOICE_PROMPTS["en"])["speak"])
     
     fs = 44100  # Sample rate

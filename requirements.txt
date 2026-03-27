@@ -8,6 +8,3 @@ openpyxl
 google-generativeai
 google-api-core
 joblib
-scipy
-sounddevice
-SpeechRecognition
