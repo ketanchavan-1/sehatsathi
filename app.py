@@ -133,6 +133,9 @@ def hash_password(password: str) -> str:
 
 
 def verify_password(password: str, stored_hash: str) -> bool:
+    # Support legacy plaintext passwords from earlier local/dev iterations.
+    if "$" not in stored_hash:
+        return password == stored_hash
     try:
         salt, expected = stored_hash.split("$", 1)
         digest = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt.encode("utf-8"), 100000)
@@ -236,6 +239,11 @@ def login_user(req: LoginRequest):
         raise HTTPException(status_code=401, detail="Invalid email or password.")
 
     token = secrets.token_urlsafe(32)
+    if "$" not in user["password_hash"]:
+        conn.execute(
+            "UPDATE users SET password_hash = ? WHERE id = ?",
+            (hash_password(req.password), user["id"]),
+        )
     conn.execute("UPDATE users SET session_token = ? WHERE id = ?", (token, user["id"]))
     conn.commit()
     updated = conn.execute(
