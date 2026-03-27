@@ -224,6 +224,8 @@ def predict_disease_api(req: PredictRequest):
     # Collect all possible symptom triggers from translations and english names
     user_symptoms = []
     text_lower = text.lower()
+    text_lower_compact = re.sub(r"\s+", "", text_lower)
+    text_compact = re.sub(r"\s+", "", text)
     
     # Exact reverse match logic using `ml2.py`'s vocabulary
     mlb_classes = list(mlb.classes_) if mlb else []
@@ -269,6 +271,33 @@ def predict_disease_api(req: PredictRequest):
     for k, v in devanagari_map.items():
         if k in text:
             user_symptoms.append(v)
+
+    # Phrase-level guard for very common cold/viral patterns from voice input
+    common_phrase_groups = [
+        {
+            "patterns": ["sardibukharsirdard", "sardibukharsirdard", "sardibukharsirdard"],
+            "symptoms": ["continuous sneezing", "high fever", "severe headache"],
+        },
+        {
+            "patterns": ["sardibukhar", "bukharsirdard", "sardisirdard"],
+            "symptoms": ["continuous sneezing", "high fever", "severe headache"],
+        },
+        {
+            "patterns": ["sardikhoklatap", "sardikhoklabukhar"],
+            "symptoms": ["continuous sneezing", "cough", "high fever"],
+        },
+        {
+            "patterns": ["सर्दीबुखारसिरदर्द", "सर्दीबुखारसरदर्द", "सर्दीतापसिरदर्द"],
+            "symptoms": ["continuous sneezing", "high fever", "severe headache"],
+        },
+        {
+            "patterns": ["सर्दीखोकलाताप", "सर्दीखोकलाबुखार"],
+            "symptoms": ["continuous sneezing", "cough", "high fever"],
+        },
+    ]
+    for group in common_phrase_groups:
+        if any(pattern in text_lower_compact or pattern in text_compact for pattern in group["patterns"]):
+            user_symptoms.extend(group["symptoms"])
             
     for symptom in mlb_classes:
         if symptom in text_lower:
