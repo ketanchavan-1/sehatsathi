@@ -7,11 +7,19 @@ import ml2  # type: ignore
 import os
 import joblib  # type: ignore
 import requests  # type: ignore
+import sqlite3
+import secrets
+import hashlib
+import json
+from typing import Optional
+import re
 
 # Configure Groq API
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
+GROQ_VISION_MODEL = os.getenv("GROQ_VISION_MODEL", "meta-llama/llama-4-scout-17b-16e-instruct")
+DB_PATH = os.getenv("DB_PATH", "sehatsathi.db")
 
 app = FastAPI(title="Sehat Sathi - Disease Prediction API")
 
@@ -27,15 +35,111 @@ app.add_middleware(
 class PredictRequest(BaseModel):
     text: str
 
+
+class RegisterRequest(BaseModel):
+    username: str
+    name: str
+    email: str
+    password: str
+    age: Optional[str] = ""
+    gender: Optional[str] = ""
+    height_cm: Optional[str] = ""
+    weight_kg: Optional[str] = ""
+    health_goal: Optional[str] = ""
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+class DietPlanRequest(BaseModel):
+    token: str
+    diet_type: str
+    goal: str
+    calories: str
+    meals: str
+    plan: list[dict]
+
+
+class FoodImageRequest(BaseModel):
+    image_data: str
+
 # Global state for ML
 model = None
 mlb = None
 label_encoder = None
 translations = None
 
+
+def get_db_connection():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def init_db():
+    conn = get_db_connection()
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            name TEXT NOT NULL,
+            email TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            age TEXT DEFAULT '',
+            gender TEXT DEFAULT '',
+            height_cm TEXT DEFAULT '',
+            weight_kg TEXT DEFAULT '',
+            health_goal TEXT DEFAULT '',
+            session_token TEXT DEFAULT ''
+        )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS diet_plans (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            diet_type TEXT NOT NULL,
+            goal TEXT NOT NULL,
+            calories TEXT NOT NULL,
+            meals TEXT NOT NULL,
+            plan_json TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+
+def hash_password(password: str) -> str:
+    salt = secrets.token_hex(16)
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt.encode("utf-8"), 100000)
+    return f"{salt}${digest.hex()}"
+
+
+def verify_password(password: str, stored_hash: str) -> bool:
+    try:
+        salt, expected = stored_hash.split("$", 1)
+        digest = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt.encode("utf-8"), 100000)
+        return digest.hex() == expected
+    except ValueError:
+        return False
+
+
+def get_user_by_token(token: str):
+    conn = get_db_connection()
+    user = conn.execute(
+        "SELECT * FROM users WHERE session_token = ?",
+        (token,),
+    ).fetchone()
+    conn.close()
+    return user
+
 @app.on_event("startup")
 def load_ml_components():
     global model, mlb, label_encoder, translations
+    init_db()
     print("Loading translations...")
     translations = ml2.load_translations()
 
@@ -65,6 +169,161 @@ def home():
 def health_check():
     return {"status": "ok"}
 
+
+@app.post("/auth/register")
+def register_user(req: RegisterRequest):
+    if not req.email.strip() or not req.password.strip() or not req.name.strip() or not req.username.strip():
+        raise HTTPException(status_code=400, detail="Name, username, email, and password are required.")
+
+    token = secrets.token_urlsafe(32)
+    conn = get_db_connection()
+    try:
+        conn.execute(
+            """
+            INSERT INTO users (username, name, email, password_hash, age, gender, height_cm, weight_kg, health_goal, session_token)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                req.username.strip(),
+                req.name.strip(),
+                req.email.strip().lower(),
+                hash_password(req.password),
+                req.age or "",
+                req.gender or "",
+                req.height_cm or "",
+                req.weight_kg or "",
+                req.health_goal or "",
+                token,
+            ),
+        )
+        conn.commit()
+    except sqlite3.IntegrityError:
+        conn.close()
+        raise HTTPException(status_code=400, detail="Email or username already exists.")
+
+    user = conn.execute(
+        "SELECT id, username, name, email, age, gender, height_cm, weight_kg, health_goal FROM users WHERE email = ?",
+        (req.email.strip().lower(),),
+    ).fetchone()
+    conn.close()
+    return {"message": "Profile created successfully.", "token": token, "user": dict(user)}
+
+
+@app.post("/auth/login")
+def login_user(req: LoginRequest):
+    conn = get_db_connection()
+    user = conn.execute(
+        "SELECT * FROM users WHERE email = ?",
+        (req.email.strip().lower(),),
+    ).fetchone()
+
+    if not user or not verify_password(req.password, user["password_hash"]):
+        conn.close()
+        raise HTTPException(status_code=401, detail="Invalid email or password.")
+
+    token = secrets.token_urlsafe(32)
+    conn.execute("UPDATE users SET session_token = ? WHERE id = ?", (token, user["id"]))
+    conn.commit()
+    updated = conn.execute(
+        "SELECT id, username, name, email, age, gender, height_cm, weight_kg, health_goal FROM users WHERE id = ?",
+        (user["id"],),
+    ).fetchone()
+    conn.close()
+    return {"token": token, "user": dict(updated)}
+
+
+@app.post("/auth/logout")
+def logout_user(token: str):
+    user = get_user_by_token(token)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid session.")
+
+    conn = get_db_connection()
+    conn.execute("UPDATE users SET session_token = '' WHERE id = ?", (user["id"],))
+    conn.commit()
+    conn.close()
+    return {"message": "Logged out successfully."}
+
+
+@app.get("/profile")
+def get_profile(token: str):
+    user = get_user_by_token(token)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid session.")
+    return {
+        "user": {
+            "id": user["id"],
+            "username": user["username"],
+            "name": user["name"],
+            "email": user["email"],
+            "age": user["age"],
+            "gender": user["gender"],
+            "height_cm": user["height_cm"],
+            "weight_kg": user["weight_kg"],
+            "health_goal": user["health_goal"],
+        }
+    }
+
+
+@app.post("/diet-plans")
+def save_diet_plan(req: DietPlanRequest):
+    user = get_user_by_token(req.token)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid session.")
+
+    conn = get_db_connection()
+    conn.execute(
+        """
+        INSERT INTO diet_plans (user_id, diet_type, goal, calories, meals, plan_json)
+        VALUES (?, ?, ?, ?, ?, ?)
+        """,
+        (
+            user["id"],
+            req.diet_type,
+            req.goal,
+            req.calories,
+            req.meals,
+            json.dumps(req.plan),
+        ),
+    )
+    conn.commit()
+    conn.close()
+    return {"message": "Diet plan saved successfully."}
+
+
+@app.get("/diet-plans")
+def get_saved_diet_plans(token: str):
+    user = get_user_by_token(token)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid session.")
+
+    conn = get_db_connection()
+    plans = conn.execute(
+        """
+        SELECT id, diet_type, goal, calories, meals, plan_json, created_at
+        FROM diet_plans
+        WHERE user_id = ?
+        ORDER BY created_at DESC
+        """,
+        (user["id"],),
+    ).fetchall()
+    conn.close()
+
+    return {
+        "plans": [
+            {
+                "id": plan["id"],
+                "diet_type": plan["diet_type"],
+                "goal": plan["goal"],
+                "calories": plan["calories"],
+                "meals": plan["meals"],
+                "plan": json.loads(plan["plan_json"]),
+                "created_at": plan["created_at"],
+            }
+            for plan in plans
+        ]
+    }
+
 def build_fallback_advice(symptoms, predicted_diseases):
     """Provide basic non-LLM guidance when the API is unavailable."""
     symptom_text = ", ".join(symptoms[:4]) if symptoms else "your symptoms"
@@ -76,6 +335,35 @@ def build_fallback_advice(symptoms, predicted_diseases):
         "very high fever, confusion, or symptoms that keep worsening.\n\n"
         "Please consult a qualified doctor for proper diagnosis and treatment."
     )
+
+
+def extract_json_object(text: str):
+    """Extract a JSON object from a model response that may include extra text."""
+    if not text:
+        return None
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
+
+    match = re.search(r"\{.*\}", text, re.DOTALL)
+    if not match:
+        return None
+
+    try:
+        return json.loads(match.group(0))
+    except json.JSONDecodeError:
+        return None
+
+
+def fallback_food_analysis():
+    return {
+        "summary": "We could not confidently analyze this food photo right now.",
+        "foods": [],
+        "total_calories": None,
+        "micronutrients": [],
+        "limitations": "Try a clearer top-down photo with good lighting and the full plate visible."
+    }
 
 
 def get_common_case_prediction(symptoms):
@@ -273,6 +561,102 @@ Keep the response concise, friendly, and easy to understand. Do NOT use markdown
     except Exception as e:
         print(f"Groq API error: {e}")
         return fallback, False, str(e)
+
+
+def get_groq_food_analysis(image_data: str):
+    """Analyze a food image and estimate foods, calories, and micronutrients."""
+    fallback = fallback_food_analysis()
+    if not GROQ_API_KEY:
+        print("Groq is disabled: missing API configuration.")
+        return fallback, False, "Groq is not configured."
+
+    try:
+        response = requests.post(
+            GROQ_API_URL,
+            headers={
+                "Authorization": f"Bearer {GROQ_API_KEY}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": GROQ_VISION_MODEL,
+                "temperature": 0.2,
+                "response_format": {"type": "json_object"},
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": (
+                            "You are a nutrition image analyst. Estimate visible foods from a meal photo and return strict JSON. "
+                            "Be careful with uncertainty."
+                        ),
+                    },
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": (
+                                    "Analyze this food image. Return JSON with keys: summary (string), foods (array of objects with "
+                                    "name, portion, estimated_calories, micronutrients), total_calories (number or null), "
+                                    "micronutrients (array of strings), limitations (string). Keep it concise."
+                                ),
+                            },
+                            {
+                                "type": "image_url",
+                                "image_url": {"url": image_data},
+                            },
+                        ],
+                    },
+                ],
+                "max_completion_tokens": 700,
+            },
+            timeout=35,
+        )
+        response.raise_for_status()
+        data = response.json()
+        content = (
+            data.get("choices", [{}])[0]
+            .get("message", {})
+            .get("content", "")
+        )
+        parsed = extract_json_object(content)
+        if not parsed:
+            return fallback, False, "Groq returned an unreadable food-analysis response."
+
+        return {
+            "summary": parsed.get("summary") or fallback["summary"],
+            "foods": parsed.get("foods") or [],
+            "total_calories": parsed.get("total_calories"),
+            "micronutrients": parsed.get("micronutrients") or [],
+            "limitations": parsed.get("limitations") or fallback["limitations"],
+        }, True, ""
+    except requests.HTTPError as e:
+        error_message = str(e)
+        print(f"Groq food analysis error: {error_message}")
+        if getattr(e.response, "status_code", None) == 401:
+            return fallback, False, "Groq API key is invalid."
+        if getattr(e.response, "status_code", None) == 429:
+            return fallback, False, "Groq rate limit exceeded for the current API key."
+        return fallback, False, error_message
+    except Exception as e:
+        print(f"Groq food analysis error: {e}")
+        return fallback, False, str(e)
+
+
+@app.post("/analyze-food-image")
+def analyze_food_image(req: FoodImageRequest):
+    if not req.image_data or not req.image_data.strip():
+        raise HTTPException(status_code=400, detail="No image provided.")
+
+    image_data = req.image_data.strip()
+    if not image_data.startswith("data:image/"):
+        raise HTTPException(status_code=400, detail="Image must be a valid data URL.")
+
+    analysis, available, error = get_groq_food_analysis(image_data)
+    return {
+        "analysis_available": available,
+        "analysis_error": error,
+        **analysis,
+    }
 
 @app.post("/predict")
 def predict_disease_api(req: PredictRequest):

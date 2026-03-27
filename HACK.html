@@ -136,6 +136,12 @@
       color: var(--g1);
     }
 
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
     .nav-cta {
       padding: 0.55rem 1.3rem !important;
       background: var(--grad) !important;
@@ -148,6 +154,178 @@
     .nav-cta:hover {
       transform: translateY(-1px);
       box-shadow: 0 6px 20px rgba(10, 110, 80, 0.4) !important;
+    }
+
+    .profile-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--white);
+      color: var(--g1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(10, 110, 80, 0.12);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .profile-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(10, 110, 80, 0.18);
+    }
+
+    .profile-btn.has-user {
+      background: var(--grad);
+      color: var(--white);
+      border-color: transparent;
+    }
+
+    .profile-avatar {
+      width: 2.8rem;
+      height: 2.8rem;
+      border-radius: 50%;
+      background: var(--grad);
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.05rem;
+      box-shadow: 0 8px 18px rgba(10, 110, 80, 0.2);
+    }
+
+    .profile-shell {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .profile-card {
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(240, 250, 247, 0.98));
+      border-radius: 1rem;
+      padding: 1rem;
+      box-shadow: 0 10px 24px rgba(10, 110, 80, 0.06);
+    }
+
+    .profile-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 0.9rem;
+    }
+
+    .profile-meta {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+
+    .profile-meta-item {
+      padding: 0.8rem 0.9rem;
+      border-radius: 0.85rem;
+      background: var(--g4);
+    }
+
+    .profile-meta-item small {
+      display: block;
+      color: var(--muted);
+      font-size: 0.72rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .profile-status {
+      display: none;
+      padding: 0.9rem 1rem;
+      border-radius: 0.85rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .profile-status.show {
+      display: block;
+    }
+
+    .profile-status.info {
+      background: #edf9f4;
+      color: var(--g1);
+    }
+
+    .profile-status.error {
+      background: #fff0f0;
+      color: #af2d2d;
+    }
+
+    .profile-switch {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 0.8rem;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .saved-plan {
+      border: 1px solid var(--border);
+      background: var(--white);
+      border-radius: 1rem;
+      padding: 1rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .saved-plan:last-child {
+      margin-bottom: 0;
+    }
+
+    .saved-plan-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .saved-plan-title {
+      font-weight: 700;
+      color: var(--g1);
+    }
+
+    .saved-plan-meta {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.75rem;
+    }
+
+    .saved-plan-chip {
+      padding: 0.32rem 0.7rem;
+      border-radius: 999px;
+      background: var(--g4);
+      color: var(--g1);
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .saved-plan-list {
+      display: grid;
+      gap: 0.55rem;
+    }
+
+    .saved-plan-row {
+      display: grid;
+      grid-template-columns: 90px 1fr 80px;
+      gap: 0.75rem;
+      padding: 0.7rem 0.85rem;
+      border-radius: 0.85rem;
+      background: var(--off);
+      font-size: 0.88rem;
+    }
+
+    .saved-plan-row strong {
+      color: var(--g1);
     }
 
     .hamburger {
@@ -189,6 +367,10 @@
     @media(max-width: 900px) {
       .nav-links {
         display: none;
+      }
+
+      .nav-actions {
+        gap: 0.5rem;
       }
 
       .hamburger {
@@ -1457,6 +1639,87 @@
       margin-bottom: 1.25rem;
     }
 
+    .photo-analyzer {
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(233, 248, 241, 0.96));
+      border-radius: 1rem;
+      padding: 1rem;
+      margin-bottom: 1.2rem;
+      box-shadow: 0 10px 22px rgba(10, 110, 80, 0.06);
+    }
+
+    .photo-analyzer h4 {
+      font-family: var(--font-head);
+      color: var(--g1);
+      font-size: 1.25rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .photo-preview {
+      margin-top: 0.9rem;
+      border-radius: 1rem;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: var(--white);
+      display: none;
+    }
+
+    .photo-preview img {
+      display: block;
+      width: 100%;
+      max-height: 240px;
+      object-fit: cover;
+    }
+
+    .photo-analysis-result {
+      margin-top: 1rem;
+      display: none;
+      border-top: 1px solid var(--border);
+      padding-top: 1rem;
+    }
+
+    .photo-analysis-result.show {
+      display: block;
+    }
+
+    .analysis-food-grid {
+      display: grid;
+      gap: 0.75rem;
+      margin-top: 0.85rem;
+    }
+
+    .analysis-food-card {
+      border: 1px solid var(--border);
+      border-radius: 0.95rem;
+      padding: 0.95rem;
+      background: var(--white);
+    }
+
+    .analysis-food-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.75rem;
+      align-items: center;
+      margin-bottom: 0.6rem;
+    }
+
+    .analysis-food-name {
+      font-weight: 700;
+      color: var(--g1);
+    }
+
+    .analysis-total {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: var(--g4);
+      color: var(--g1);
+      font-weight: 700;
+      margin-top: 0.85rem;
+    }
+
     .food-results {
       display: flex;
       flex-direction: column;
@@ -1590,6 +1853,14 @@
       .micro-grid {
         grid-template-columns: 1fr;
       }
+
+      .profile-meta {
+        grid-template-columns: 1fr;
+      }
+
+      .saved-plan-row {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -1622,6 +1893,12 @@
         <a href="#about">About</a>
         <a href="#survey-modal" class="nav-cta" onclick="openModal('survey-modal');return false;">Start Survey →</a>
       </div>
+      <button class="profile-btn" id="profileBtn" onclick="openProfileModal()" aria-label="Open profile">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M20 21a8 8 0 0 0-16 0" />
+          <circle cx="12" cy="8" r="4" />
+        </svg>
+      </button>
       <button class="hamburger" onclick="document.getElementById('mob').classList.toggle('open')">
         <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path d="M3 12h18M3 6h18M3 18h18" />
@@ -1634,6 +1911,7 @@
       <a href="#how">How It Works</a>
       <a href="#resources">Resources</a>
       <a href="#about">About</a>
+      <a href="#" onclick="openProfileModal();return false;">Profile</a>
       <a href="#" onclick="openModal('survey-modal');return false;" style="color:var(--g1);font-weight:700;">Start
         Survey →</a>
     </div>
@@ -2303,12 +2581,144 @@
               Redo</button>
           </div>
           <div class="meal-plan" id="mealPlanOutput"></div>
+          <div id="dietSaveStatus" style="margin-top:0.9rem;color:var(--muted);font-size:0.88rem;"></div>
         </div>
       </div>
     </div>
   </div>
 
   <!-- ═══════════════ MODAL: DIET INFO ═══════════════ -->
+  <div class="modal-overlay" id="profile-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>User Profile</h3>
+        <button class="modal-close" onclick="closeModal('profile-modal')">X</button>
+      </div>
+      <div class="modal-body">
+        <div class="profile-shell">
+          <div id="profileStatus" class="profile-status"></div>
+
+          <div id="profileLoginView" class="profile-card">
+            <div style="margin-bottom:1rem;">
+              <h4 style="font-family:var(--font-head);font-size:1.4rem;color:var(--g1);">Welcome back</h4>
+              <p style="color:var(--muted);font-size:0.92rem;">Sign in to keep your details and diet plans saved across sessions.</p>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input class="form-input" id="loginEmail" type="email" placeholder="you@example.com" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Password</label>
+              <input class="form-input" id="loginPassword" type="password" placeholder="Enter your password" />
+            </div>
+            <button class="btn-primary" style="width:100%;justify-content:center;" onclick="loginProfile()">Sign In</button>
+            <div class="profile-switch">
+              <span>New here?</span>
+              <button class="btn-outline" style="padding:0.45rem 0.9rem;" onclick="showProfileSection('register')">Create profile</button>
+            </div>
+          </div>
+
+          <div id="profileRegisterView" class="profile-card" style="display:none;">
+            <div style="margin-bottom:1rem;">
+              <h4 style="font-family:var(--font-head);font-size:1.4rem;color:var(--g1);">Create your profile</h4>
+              <p style="color:var(--muted);font-size:0.92rem;">We will save your personal details and the diet plans you generate.</p>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Full name</label>
+                <input class="form-input" id="registerName" placeholder="Ketan Chavan" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Username</label>
+                <input class="form-input" id="registerUsername" placeholder="ketanchavan" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Email</label>
+                <input class="form-input" id="registerEmail" type="email" placeholder="you@example.com" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Password</label>
+                <input class="form-input" id="registerPassword" type="password" placeholder="Create a password" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Age</label>
+                <input class="form-input" id="registerAge" placeholder="24" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Gender</label>
+                <select class="form-select" id="registerGender">
+                  <option value="">Select</option>
+                  <option>Female</option>
+                  <option>Male</option>
+                  <option>Other</option>
+                  <option>Prefer not to say</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Height (cm)</label>
+                <input class="form-input" id="registerHeight" placeholder="170" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Weight (kg)</label>
+                <input class="form-input" id="registerWeight" placeholder="65" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Health goal</label>
+              <input class="form-input" id="registerGoal" placeholder="Weight loss, wellness, muscle gain..." />
+            </div>
+            <button class="btn-primary" style="width:100%;justify-content:center;" onclick="registerProfile()">Create Profile</button>
+            <div class="profile-switch">
+              <span>Already have an account?</span>
+              <button class="btn-outline" style="padding:0.45rem 0.9rem;" onclick="showProfileSection('login')">Sign in</button>
+            </div>
+          </div>
+
+          <div id="profileDashboardView" style="display:none;">
+            <div class="profile-card">
+              <div class="profile-head">
+                <div style="display:flex;align-items:center;gap:0.9rem;">
+                  <div class="profile-avatar" id="profileAvatar">S</div>
+                  <div>
+                    <h4 id="profileName" style="font-family:var(--font-head);font-size:1.4rem;color:var(--g1);">Sehat User</h4>
+                    <div id="profileEmail" style="color:var(--muted);font-size:0.92rem;">user@example.com</div>
+                  </div>
+                </div>
+                <button class="btn-outline" style="padding:0.45rem 0.9rem;" onclick="logoutProfile()">Log Out</button>
+              </div>
+              <div class="profile-meta">
+                <div class="profile-meta-item"><small>Username</small><div id="profileUsername">-</div></div>
+                <div class="profile-meta-item"><small>Age</small><div id="profileAge">-</div></div>
+                <div class="profile-meta-item"><small>Gender</small><div id="profileGender">-</div></div>
+                <div class="profile-meta-item"><small>Height</small><div id="profileHeight">-</div></div>
+                <div class="profile-meta-item"><small>Weight</small><div id="profileWeight">-</div></div>
+                <div class="profile-meta-item"><small>Health goal</small><div id="profileGoal">-</div></div>
+              </div>
+            </div>
+
+            <div class="profile-card">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-bottom:0.75rem;">
+                <div>
+                  <h4 style="font-family:var(--font-head);font-size:1.3rem;color:var(--g1);">Saved Diet Plans</h4>
+                  <p style="color:var(--muted);font-size:0.9rem;">Every generated plan is stored here when you are signed in.</p>
+                </div>
+              </div>
+              <div id="savedDietPlans">
+                <p style="color:var(--muted);">No saved diet plans yet. Generate one from the diet planner to see it here.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="diet-info-modal">
     <div class="modal">
       <div class="modal-header">
@@ -2316,6 +2726,22 @@
         <button class="modal-close" onclick="closeModal('diet-info-modal')">✕</button>
       </div>
       <div class="modal-body">
+        <div class="photo-analyzer">
+          <h4>Analyze Food from a Photo</h4>
+          <p style="color:var(--muted);font-size:0.9rem;">Upload a meal photo to estimate visible foods, calories, and likely micronutrients.</p>
+          <div class="form-row" style="margin-top:0.9rem;align-items:end;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Food photo</label>
+              <input class="form-input" id="foodPhotoInput" type="file" accept="image/*" onchange="handleFoodPhoto(event)" />
+            </div>
+            <button class="btn-primary" type="button" style="justify-content:center;" onclick="analyzeFoodPhoto()">Analyze Photo</button>
+          </div>
+          <div id="foodPhotoPreview" class="photo-preview">
+            <img id="foodPhotoPreviewImg" alt="Food preview" />
+          </div>
+          <div id="foodPhotoStatus" style="margin-top:0.8rem;color:var(--muted);font-size:0.88rem;"></div>
+          <div id="foodPhotoAnalysis" class="photo-analysis-result"></div>
+        </div>
         <div class="food-search">
           <input class="form-input" id="foodSearch" placeholder="Search food (e.g. Apple, Rice, Chicken…)"
             oninput="searchFood(this.value)" />
@@ -2682,6 +3108,290 @@
     });
 
     // ─── SURVEY ───
+    let authToken = localStorage.getItem('sehatsathi_token') || '';
+    let currentUser = null;
+    let savedDietPlans = [];
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function formatDietType(type) {
+      const labels = { veg: 'Vegetarian', nonveg: 'Non-Vegetarian', vegan: 'Vegan', jain: 'Jain' };
+      return labels[type] || type || '-';
+    }
+
+    function showProfileMessage(message, tone = 'info') {
+      const box = document.getElementById('profileStatus');
+      if (!box) return;
+      if (!message) {
+        box.className = 'profile-status';
+        box.textContent = '';
+        return;
+      }
+      box.className = `profile-status show ${tone}`;
+      box.textContent = message;
+    }
+
+    function showProfileSection(section) {
+      const loginView = document.getElementById('profileLoginView');
+      const registerView = document.getElementById('profileRegisterView');
+      const dashboardView = document.getElementById('profileDashboardView');
+      if (!loginView || !registerView || !dashboardView) return;
+      loginView.style.display = section === 'login' ? 'block' : 'none';
+      registerView.style.display = section === 'register' ? 'block' : 'none';
+      dashboardView.style.display = section === 'dashboard' ? 'block' : 'none';
+    }
+
+    function updateProfileButton() {
+      const btn = document.getElementById('profileBtn');
+      if (!btn) return;
+      if (currentUser) {
+        const letter = escapeHtml((currentUser.name || currentUser.username || 'S').trim().charAt(0).toUpperCase() || 'S');
+        btn.classList.add('has-user');
+        btn.innerHTML = `<span style="font-weight:700;font-size:0.95rem;">${letter}</span>`;
+      } else {
+        btn.classList.remove('has-user');
+        btn.innerHTML = `<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M20 21a8 8 0 0 0-16 0" />
+          <circle cx="12" cy="8" r="4" />
+        </svg>`;
+      }
+    }
+
+    function renderProfile() {
+      if (!currentUser) return;
+      document.getElementById('profileAvatar').textContent = (currentUser.name || currentUser.username || 'S').trim().charAt(0).toUpperCase() || 'S';
+      document.getElementById('profileName').textContent = currentUser.name || 'Sehat User';
+      document.getElementById('profileEmail').textContent = currentUser.email || '-';
+      document.getElementById('profileUsername').textContent = currentUser.username || '-';
+      document.getElementById('profileAge').textContent = currentUser.age || '-';
+      document.getElementById('profileGender').textContent = currentUser.gender || '-';
+      document.getElementById('profileHeight').textContent = currentUser.height_cm ? `${currentUser.height_cm} cm` : '-';
+      document.getElementById('profileWeight').textContent = currentUser.weight_kg ? `${currentUser.weight_kg} kg` : '-';
+      document.getElementById('profileGoal').textContent = currentUser.health_goal || '-';
+    }
+
+    function renderSavedDietPlans() {
+      const container = document.getElementById('savedDietPlans');
+      if (!container) return;
+      if (!savedDietPlans.length) {
+        container.innerHTML = '<p style="color:var(--muted);">No saved diet plans yet. Generate one from the diet planner to see it here.</p>';
+        return;
+      }
+      container.innerHTML = savedDietPlans.map(plan => `
+        <div class="saved-plan">
+          <div class="saved-plan-head">
+            <div>
+              <div class="saved-plan-title">${escapeHtml(formatDietType(plan.diet_type))}</div>
+              <div style="color:var(--muted);font-size:0.82rem;">Saved on ${escapeHtml(plan.created_at || '-')}</div>
+            </div>
+          </div>
+          <div class="saved-plan-meta">
+            <span class="saved-plan-chip">${escapeHtml(plan.goal || '-')}</span>
+            <span class="saved-plan-chip">${escapeHtml(plan.calories || '-')}</span>
+            <span class="saved-plan-chip">${escapeHtml(plan.meals || '-')}</span>
+          </div>
+          <div class="saved-plan-list">
+            ${(plan.plan || []).map(item => `
+              <div class="saved-plan-row">
+                <strong>${escapeHtml(item.t || '-')}</strong>
+                <span>${escapeHtml(item.d || '-')}</span>
+                <span>${escapeHtml(item.c || '-')}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function loadProfileData() {
+      if (!authToken) {
+        currentUser = null;
+        savedDietPlans = [];
+        updateProfileButton();
+        return false;
+      }
+
+      try {
+        const [profileRes, plansRes] = await Promise.all([
+          fetch(`/profile?token=${encodeURIComponent(authToken)}`),
+          fetch(`/diet-plans?token=${encodeURIComponent(authToken)}`)
+        ]);
+
+        if (profileRes.status === 401 || plansRes.status === 401) {
+          localStorage.removeItem('sehatsathi_token');
+          authToken = '';
+          currentUser = null;
+          savedDietPlans = [];
+          updateProfileButton();
+          showProfileMessage('Your session expired. Please sign in again.', 'error');
+          showProfileSection('login');
+          return false;
+        }
+
+        const profileData = await profileRes.json();
+        const plansData = await plansRes.json();
+        currentUser = profileData.user || null;
+        savedDietPlans = plansData.plans || [];
+        renderProfile();
+        renderSavedDietPlans();
+        updateProfileButton();
+        return true;
+      } catch (error) {
+        showProfileMessage('Could not load your saved profile right now.', 'error');
+        return false;
+      }
+    }
+
+    async function openProfileModal() {
+      openModal('profile-modal');
+      showProfileMessage('');
+      if (authToken) {
+        const ok = await loadProfileData();
+        showProfileSection(ok && currentUser ? 'dashboard' : 'login');
+      } else {
+        showProfileSection('login');
+      }
+    }
+
+    function collectRegisterPayload() {
+      return {
+        name: document.getElementById('registerName').value.trim(),
+        username: document.getElementById('registerUsername').value.trim(),
+        email: document.getElementById('registerEmail').value.trim(),
+        password: document.getElementById('registerPassword').value,
+        age: document.getElementById('registerAge').value.trim(),
+        gender: document.getElementById('registerGender').value,
+        height_cm: document.getElementById('registerHeight').value.trim(),
+        weight_kg: document.getElementById('registerWeight').value.trim(),
+        health_goal: document.getElementById('registerGoal').value.trim()
+      };
+    }
+
+    async function registerProfile() {
+      const payload = collectRegisterPayload();
+      if (!payload.name || !payload.username || !payload.email || !payload.password) {
+        showProfileMessage('Name, username, email, and password are required.', 'error');
+        return;
+      }
+
+      showProfileMessage('Creating your profile...', 'info');
+      try {
+        const res = await fetch('/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showProfileMessage(data.detail || 'Could not create your profile.', 'error');
+          return;
+        }
+
+        authToken = data.token || '';
+        currentUser = data.user || null;
+        savedDietPlans = [];
+        localStorage.setItem('sehatsathi_token', authToken);
+        renderProfile();
+        renderSavedDietPlans();
+        updateProfileButton();
+        showProfileSection('dashboard');
+        showProfileMessage('Profile created and signed in successfully.', 'info');
+      } catch (error) {
+        showProfileMessage('Profile creation failed. Please try again.', 'error');
+      }
+    }
+
+    async function loginProfile() {
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      if (!email || !password) {
+        showProfileMessage('Enter both email and password to sign in.', 'error');
+        return;
+      }
+
+      showProfileMessage('Signing you in...', 'info');
+      try {
+        const res = await fetch('/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showProfileMessage(data.detail || 'Sign in failed.', 'error');
+          return;
+        }
+
+        authToken = data.token || '';
+        currentUser = data.user || null;
+        localStorage.setItem('sehatsathi_token', authToken);
+        await loadProfileData();
+        showProfileSection('dashboard');
+        showProfileMessage('Signed in successfully.', 'info');
+      } catch (error) {
+        showProfileMessage('Sign in failed. Please try again.', 'error');
+      }
+    }
+
+    async function logoutProfile() {
+      const token = authToken;
+      localStorage.removeItem('sehatsathi_token');
+      authToken = '';
+      currentUser = null;
+      savedDietPlans = [];
+      updateProfileButton();
+      renderSavedDietPlans();
+      showProfileSection('login');
+      showProfileMessage('You have been logged out.', 'info');
+
+      if (!token) return;
+      try {
+        await fetch(`/auth/logout?token=${encodeURIComponent(token)}`, { method: 'POST' });
+      } catch (error) {
+        // Ignore logout network failures because the local session is already cleared.
+      }
+    }
+
+    async function saveDietPlan(plan) {
+      if (!authToken) return { saved: false, reason: 'not_logged_in' };
+      try {
+        const res = await fetch('/diet-plans', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            token: authToken,
+            diet_type: selectedDiet,
+            goal: document.getElementById('dietGoal').value,
+            calories: document.getElementById('dietCalories').value.trim() || 'Not specified',
+            meals: document.getElementById('dietMeals').value,
+            plan
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          if (res.status === 401) {
+            localStorage.removeItem('sehatsathi_token');
+            authToken = '';
+            currentUser = null;
+            updateProfileButton();
+            return { saved: false, reason: 'expired', message: data.detail || 'Session expired.' };
+          }
+          return { saved: false, reason: 'error', message: data.detail || 'Could not save the diet plan.' };
+        }
+        await loadProfileData();
+        return { saved: true };
+      } catch (error) {
+        return { saved: false, reason: 'error', message: 'Could not connect to save your diet plan.' };
+      }
+    }
+
     let currentStep = 1;
     function nextSurveyStep(step) {
       document.querySelectorAll('[id^="surveyStep"]').forEach(el => el.style.display = 'none');
@@ -2737,12 +3447,29 @@
         { t: '9:30 PM', d: 'Warm milk with cardamom', c: '120 kcal' },
       ]
     };
-    function generateDiet() {
+    async function generateDiet() {
       const plan = MEAL_PLANS[selectedDiet] || MEAL_PLANS['veg'];
       const out = document.getElementById('mealPlanOutput');
+      const saveStatus = document.getElementById('dietSaveStatus');
       out.innerHTML = plan.map(m => `<div class="meal-item"><span class="meal-time">${m.t}</span><span class="meal-desc">${m.d}</span><span class="meal-cal">${m.c}</span></div>`).join('');
       document.getElementById('dietForm').style.display = 'none';
       document.getElementById('dietResult').style.display = 'block';
+
+      if (!saveStatus) return;
+      if (!authToken) {
+        saveStatus.innerHTML = `Sign in from <a href="#" onclick="openProfileModal();return false;" style="color:var(--g1);font-weight:700;">your profile</a> to save this plan.`;
+        return;
+      }
+
+      saveStatus.textContent = 'Saving this diet plan to your profile...';
+      const result = await saveDietPlan(plan);
+      if (result.saved) {
+        saveStatus.textContent = 'Diet plan saved to your profile.';
+      } else if (result.reason === 'expired') {
+        saveStatus.innerHTML = `Your session expired. <a href="#" onclick="openProfileModal();return false;" style="color:var(--g1);font-weight:700;">Sign in again</a> to save plans.`;
+      } else {
+        saveStatus.textContent = result.message || 'Could not save your diet plan right now.';
+      }
     }
 
     // ─── FOOD SEARCH ───
@@ -2888,6 +3615,105 @@
     }
 
     // ─── PREDICTOR ───
+    let selectedFoodPhotoData = '';
+
+    function handleFoodPhoto(event) {
+      const file = event.target.files && event.target.files[0];
+      const status = document.getElementById('foodPhotoStatus');
+      const preview = document.getElementById('foodPhotoPreview');
+      const previewImg = document.getElementById('foodPhotoPreviewImg');
+      const analysisBox = document.getElementById('foodPhotoAnalysis');
+      selectedFoodPhotoData = '';
+
+      if (analysisBox) {
+        analysisBox.classList.remove('show');
+        analysisBox.innerHTML = '';
+      }
+
+      if (!file) {
+        if (preview) preview.style.display = 'none';
+        if (status) status.textContent = '';
+        return;
+      }
+
+      if (!file.type.startsWith('image/')) {
+        if (status) status.textContent = 'Please choose an image file.';
+        event.target.value = '';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        selectedFoodPhotoData = reader.result;
+        if (previewImg) previewImg.src = selectedFoodPhotoData;
+        if (preview) preview.style.display = 'block';
+        if (status) status.textContent = 'Photo ready. Click Analyze Photo to estimate calories and micronutrients.';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function renderFoodPhotoAnalysis(data) {
+      const box = document.getElementById('foodPhotoAnalysis');
+      if (!box) return;
+      const foods = Array.isArray(data.foods) ? data.foods : [];
+      const micros = Array.isArray(data.micronutrients) ? data.micronutrients : [];
+
+      box.classList.add('show');
+      box.innerHTML = `
+        <div style="color:var(--dark);font-size:0.92rem;line-height:1.6;">${escapeHtml(data.summary || 'Analysis complete.')}</div>
+        ${data.total_calories ? `<div class="analysis-total">Estimated total: ${escapeHtml(data.total_calories)} kcal</div>` : ''}
+        ${foods.length ? `<div class="analysis-food-grid">${foods.map(food => `
+          <div class="analysis-food-card">
+            <div class="analysis-food-top">
+              <div class="analysis-food-name">${escapeHtml(food.name || 'Detected food')}</div>
+              <div class="saved-plan-chip">${escapeHtml(food.estimated_calories || 'Calories unavailable')}</div>
+            </div>
+            <div style="font-size:0.88rem;color:var(--muted);margin-bottom:0.55rem;">Portion: ${escapeHtml(food.portion || 'Approximate')}</div>
+            <div class="food-macros">${(food.micronutrients || []).map(item => `<span class="macro">${escapeHtml(item)}</span>`).join('')}</div>
+          </div>
+        `).join('')}</div>` : ''}
+        ${micros.length ? `<div style="margin-top:0.95rem;"><div style="font-weight:700;color:var(--g1);margin-bottom:0.45rem;">Likely micronutrients</div><div class="food-macros">${micros.map(item => `<span class="macro">${escapeHtml(item)}</span>`).join('')}</div></div>` : ''}
+        ${data.limitations ? `<div style="margin-top:0.95rem;font-size:0.84rem;color:var(--muted);">${escapeHtml(data.limitations)}</div>` : ''}
+      `;
+    }
+
+    async function analyzeFoodPhoto() {
+      const status = document.getElementById('foodPhotoStatus');
+      const analysisBox = document.getElementById('foodPhotoAnalysis');
+      if (!selectedFoodPhotoData) {
+        if (status) status.textContent = 'Choose a food photo first.';
+        return;
+      }
+
+      if (analysisBox) {
+        analysisBox.classList.remove('show');
+        analysisBox.innerHTML = '';
+      }
+      if (status) status.textContent = 'Analyzing your food photo...';
+
+      try {
+        const res = await fetch('/analyze-food-image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image_data: selectedFoodPhotoData })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          if (status) status.textContent = data.detail || 'Could not analyze this image.';
+          return;
+        }
+
+        renderFoodPhotoAnalysis(data);
+        if (status) {
+          status.textContent = data.analysis_available
+            ? 'Photo analysis complete.'
+            : `Photo analysis fallback used. ${data.analysis_error || ''}`.trim();
+        }
+      } catch (error) {
+        if (status) status.textContent = 'Could not connect to the analysis service.';
+      }
+    }
+
     function runPredictor() {
       const selected = document.querySelectorAll('#predictor-modal .chip.selected');
       const count = selected.length;
@@ -3093,7 +3919,7 @@
             } else {
               htmlStr += `<br><strong>Health Advice:</strong><br><div style="background:var(--g4);padding:0.75rem;border-radius:8px;margin-top:0.5rem;font-size:0.87rem;line-height:1.6;white-space:pre-wrap;">${escapeHtml(data.advice || 'Advice is unavailable right now.')}</div>`;
               if (data.advice_error) {
-                htmlStr += `<div style="margin-top:0.6rem;font-size:0.8rem;color:var(--muted);">Gemini status: ${escapeHtml(data.advice_error)}</div>`;
+                htmlStr += `<div style="margin-top:0.6rem;font-size:0.8rem;color:var(--muted);">AI provider status: ${escapeHtml(data.advice_error)}</div>`;
               }
             }
             document.getElementById('voiceResponse').innerHTML = htmlStr;
@@ -3124,6 +3950,8 @@
 
     searchFood('');
     renderMicronutrients();
+    updateProfileButton();
+    if (authToken) loadProfileData();
 
   </script>
 </body>
