@@ -627,6 +627,17 @@ def build_prediction_candidate_pool(symptoms, ml_candidates=None):
     """Build a broader but still controlled candidate list for final prediction refinement."""
     symptom_set = set(symptoms)
     candidate_pool = []
+    red_flag_symptoms = {
+        "chest pain",
+        "breathlessness",
+        "blood in sputum",
+        "weight loss",
+        "yellowing of eyes",
+        "yellowish skin",
+        "weakness of one body side",
+        "slurred speech",
+    }
+    has_red_flags = bool(symptom_set & red_flag_symptoms)
 
     common_case_predictions = get_common_case_prediction(symptoms) or []
     for disease in common_case_predictions:
@@ -666,9 +677,39 @@ def build_prediction_candidate_pool(symptoms, ml_candidates=None):
             if disease not in candidate_pool:
                 candidate_pool.append(disease)
 
+    if {"yellowing of eyes", "yellowish skin"}.issubset(symptom_set):
+        for disease in ["Hepatitis E", "Hepatitis A", "Hepatitis B", "Jaundice"]:
+            if disease not in candidate_pool:
+                candidate_pool.append(disease)
+
+    if {"blood in sputum", "weight loss"}.issubset(symptom_set) or {"blood in sputum", "breathlessness"}.issubset(symptom_set):
+        for disease in ["Tuberculosis", "Pneumonia"]:
+            if disease not in candidate_pool:
+                candidate_pool.append(disease)
+
+    if {"chest pain", "breathlessness"}.issubset(symptom_set):
+        for disease in ["Heart attack", "Pneumonia", "Bronchial Asthma"]:
+            if disease not in candidate_pool:
+                candidate_pool.append(disease)
+
+    if {"weakness of one body side", "slurred speech"}.issubset(symptom_set):
+        for disease in ["Paralysis (brain hemorrhage)"]:
+            if disease not in candidate_pool:
+                candidate_pool.append(disease)
+
     for disease in ml_candidates or []:
         if disease not in candidate_pool:
             candidate_pool.append(disease)
+
+    if has_red_flags:
+        serious_first = []
+        for disease in ml_candidates or []:
+            if disease not in serious_first:
+                serious_first.append(disease)
+        for disease in candidate_pool:
+            if disease not in serious_first:
+                serious_first.append(disease)
+        return serious_first[:8]
 
     return candidate_pool[:8]
 
@@ -817,13 +858,26 @@ def get_groq_refined_predictions(symptoms, candidate_diseases):
 
     fallback = list(candidate_diseases)
     try:
+        red_flag_symptoms = {
+            "chest pain",
+            "breathlessness",
+            "blood in sputum",
+            "weight loss",
+            "yellowing of eyes",
+            "yellowish skin",
+            "weakness of one body side",
+            "slurred speech",
+        }
+        has_red_flags = bool(set(symptoms) & red_flag_symptoms)
         prompt = (
             "You are reviewing disease-prediction candidates for a healthcare app.\n"
             f"Reported symptoms: {', '.join(symptoms)}\n"
             f"Candidate diseases from the ML system: {', '.join(candidate_diseases)}\n\n"
             "Return strict JSON with one key: predictions (an array of up to 3 disease names chosen only from the candidate list).\n"
             "If the top ML candidates are a poor fit, replace them with better-fitting diseases from the candidate list.\n"
-            "Prefer common benign conditions for common symptoms, and avoid severe or rare diseases unless the symptom pattern strongly supports them."
+            "Prefer common benign conditions for common symptoms, and avoid severe or rare diseases unless the symptom pattern strongly supports them.\n"
+            f"Red-flag symptoms present: {'yes' if has_red_flags else 'no'}.\n"
+            "If red-flag symptoms are present, do not force common benign diseases above serious fitting conditions."
         )
         response = requests.post(
             GROQ_API_URL,
