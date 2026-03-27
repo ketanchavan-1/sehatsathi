@@ -85,6 +85,71 @@ def build_fallback_advice(symptoms, predicted_diseases):
         "Please consult a qualified doctor for proper diagnosis and treatment."
     )
 
+
+def get_common_case_prediction(symptoms):
+    """Return safer common-condition predictions for very common symptom sets."""
+    symptom_set = set(symptoms)
+    red_flag_symptoms = {
+        "chest pain",
+        "breathlessness",
+        "blood in sputum",
+        "weight loss",
+        "yellowing of eyes",
+        "yellowish skin",
+        "weakness of one body side",
+        "slurred speech",
+        "blackheads",  # avoid forcing common-case logic onto unrelated symptom groups
+    }
+    if symptom_set & red_flag_symptoms:
+        return None
+
+    common_symptom_pool = {
+        "fever (>101Â°f)",
+        "high fever",
+        "mild fever",
+        "severe headache",
+        "headache",
+        "cough",
+        "fatigue",
+        "malaise",
+        "continuous sneezing",
+        "runny nose",
+        "congestion",
+        "throat irritation",
+        "joint/muscle pain",
+        "muscle pain",
+        "nausea/vomiting",
+        "abdominal pain",
+        "stomach pain",
+        "diarrhoea",
+        "itching",
+        "skin rash",
+    }
+    if len(symptom_set) > 4 or not symptom_set.issubset(common_symptom_pool):
+        return None
+
+    if {"continuous sneezing", "cough"}.issubset(symptom_set) or {"runny nose", "congestion"}.issubset(symptom_set):
+        return ["Common Cold / Seasonal Allergies", "Common Viral Fever"]
+    if {"high fever", "severe headache"}.issubset(symptom_set) or {"fever (>101Â°f)", "severe headache"}.issubset(symptom_set):
+        return ["Common Viral Fever", "Seasonal Viral Infection"]
+    if {"high fever", "cough"}.issubset(symptom_set) or {"fever (>101Â°f)", "cough"}.issubset(symptom_set):
+        return ["Common Viral Fever", "Common Cold / Seasonal Allergies"]
+    if {"itching", "skin rash"}.issubset(symptom_set):
+        return ["Common Skin Allergy", "Fungal infection"]
+    if {"nausea/vomiting", "abdominal pain"}.issubset(symptom_set) or {"nausea/vomiting", "stomach pain"}.issubset(symptom_set):
+        return ["Common Indigestion or Acid Reflux", "Food Poisoning"]
+    if {"fatigue", "severe headache"}.issubset(symptom_set):
+        return ["General Fatigue / Stress", "Common Headache"]
+    if "cough" in symptom_set and "severe headache" in symptom_set:
+        return ["Common Viral Fever", "Common Cold / Seasonal Allergies"]
+    if "high fever" in symptom_set or "fever (>101Â°f)" in symptom_set:
+        return ["Common Viral Fever"]
+    if "cough" in symptom_set:
+        return ["Common Cold / Seasonal Allergies"]
+    if "severe headache" in symptom_set or "headache" in symptom_set:
+        return ["Common Headache"]
+    return None
+
 def get_gemini_advice(symptoms, predicted_diseases):
     """Use Gemini 2.0 Flash to generate a brief explanation and health advice."""
     fallback = build_fallback_advice(symptoms, predicted_diseases)
@@ -171,9 +236,11 @@ def predict_disease_api(req: PredictRequest):
         "muscle pain": "joint/muscle pain",
         "joint pain": "joint/muscle pain",
         "headache": "severe headache",
+        "sir dard": "severe headache",
+        "sirdard": "severe headache",
 
         # Romanized Marathi/Hindi
-        "sardi": "high fever",
+        "sardi": "continuous sneezing",
         "khokla": "cough",
         "tap": "high fever",
         "bukhar": "high fever",
@@ -181,7 +248,7 @@ def predict_disease_api(req: PredictRequest):
     }
     
     devanagari_map = {
-        "सर्दी": "high fever",
+        "सर्दी": "continuous sneezing",
         "खोखला": "cough",
         "ताप": "high fever",
         "बुखार": "high fever",
@@ -247,6 +314,18 @@ def predict_disease_api(req: PredictRequest):
                 "advice_available": advice_available,
                 "advice_error": advice_error
             }
+
+    common_case_predictions = get_common_case_prediction(valid_symptoms)
+    if common_case_predictions:
+        advice, advice_available, advice_error = get_gemini_advice(valid_symptoms, common_case_predictions)
+        return {
+            "detected_language": lang,
+            "matched_symptoms": valid_symptoms,
+            "predictions": [{"disease": disease_name} for disease_name in common_case_predictions[:3]],
+            "advice": advice,
+            "advice_available": advice_available,
+            "advice_error": advice_error
+        }
         
     predictions = ml2.predict_disease(valid_symptoms, model, mlb, label_encoder)
     
