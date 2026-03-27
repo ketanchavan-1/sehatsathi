@@ -1,0 +1,3125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sehat Sathi — AI-Powered Health Analysis</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap"
+    rel="stylesheet" />
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --g1: #0a6e50;
+      --g2: #12a374;
+      --g3: #1ed99a;
+      --g4: #d4f5ea;
+      --white: #ffffff;
+      --off: #f3faf7;
+      --dark: #082c20;
+      --muted: #5a7a6e;
+      --border: #c8e8da;
+      --card: #ffffff;
+      --accent: #f0a500;
+      --radius: 1rem;
+      --grad: linear-gradient(135deg, #0a6e50 0%, #12a374 60%, #1ed99a 100%);
+      --grad-light: linear-gradient(135deg, #d4f5ea 0%, #eafaf4 100%);
+      --shadow: 0 8px 32px -4px rgba(10, 110, 80, 0.13);
+      --shadow-lg: 0 20px 60px -8px rgba(10, 110, 80, 0.22);
+      --font-head: 'DM Serif Display', serif;
+      --font-body: 'DM Sans', sans-serif;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--off);
+      color: var(--dark);
+      line-height: 1.65;
+      overflow-x: hidden;
+    }
+
+    /* ─── ANIMATED CANVAS BG ─── */
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.55;
+    }
+
+    /* ─── NAVBAR ─── */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
+      transition: box-shadow 0.3s;
+    }
+
+    nav.scrolled {
+      box-shadow: 0 4px 24px rgba(10, 110, 80, 0.1);
+    }
+
+    .nav-inner {
+      max-width: 1300px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+    }
+
+    .logo-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: var(--grad);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 16px rgba(10, 110, 80, 0.35);
+    }
+
+    .logo-text {
+      font-family: var(--font-head);
+      font-size: 1.35rem;
+      color: var(--dark);
+    }
+
+    .logo-text span {
+      color: var(--g1);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 0.2rem;
+    }
+
+    .nav-links a {
+      padding: 0.5rem 1rem;
+      border-radius: 0.6rem;
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--muted);
+      transition: all 0.2s;
+    }
+
+    .nav-links a:hover,
+    .nav-links a.active {
+      background: var(--g4);
+      color: var(--g1);
+    }
+
+    .nav-cta {
+      padding: 0.55rem 1.3rem !important;
+      background: var(--grad) !important;
+      color: #fff !important;
+      border-radius: 0.7rem !important;
+      font-weight: 600 !important;
+      box-shadow: 0 3px 14px rgba(10, 110, 80, 0.3);
+    }
+
+    .nav-cta:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(10, 110, 80, 0.4) !important;
+    }
+
+    .hamburger {
+      display: none;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0.4rem;
+    }
+
+    .mobile-menu {
+      display: none;
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--border);
+      flex-direction: column;
+      gap: 0.3rem;
+      background: var(--white);
+    }
+
+    .mobile-menu.open {
+      display: flex;
+    }
+
+    .mobile-menu a {
+      display: block;
+      padding: 0.6rem 0.8rem;
+      border-radius: 0.6rem;
+      text-decoration: none;
+      font-weight: 500;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .mobile-menu a:hover {
+      background: var(--g4);
+      color: var(--g1);
+    }
+
+    @media(max-width: 900px) {
+      .nav-links {
+        display: none;
+      }
+
+      .hamburger {
+        display: block;
+      }
+    }
+
+    /* ─── HERO ─── */
+    .hero {
+      position: relative;
+      z-index: 1;
+      padding: 120px 2rem 80px;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 70% at 60% 50%, rgba(30, 217, 154, 0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-grid {
+      max-width: 1300px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+    }
+
+    @media(max-width: 900px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-visual {
+        display: none;
+      }
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--g4);
+      color: var(--g1);
+      border-radius: 999px;
+      padding: 0.4rem 1rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      border: 1px solid var(--border);
+    }
+
+    .badge-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--g2);
+      animation: pulse 2s infinite;
+    }
+
+    .hero h1 {
+      font-family: var(--font-head);
+      font-size: clamp(2.5rem, 5.5vw, 4rem);
+      line-height: 1.1;
+      margin-bottom: 1.2rem;
+      color: var(--dark);
+    }
+
+    .hero h1 em {
+      color: var(--g1);
+      font-style: italic;
+    }
+
+    .hero-sub {
+      font-size: 1.1rem;
+      color: var(--muted);
+      max-width: 500px;
+      margin-bottom: 2.5rem;
+    }
+
+    .hero-btns {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.85rem 1.8rem;
+      background: var(--grad);
+      color: #fff;
+      border-radius: var(--radius);
+      font-weight: 600;
+      font-size: 1rem;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(10, 110, 80, 0.32);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(10, 110, 80, 0.42);
+    }
+
+    .btn-outline {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.85rem 1.8rem;
+      border: 2px solid var(--border);
+      background: var(--white);
+      color: var(--dark);
+      border-radius: var(--radius);
+      font-weight: 600;
+      font-size: 1rem;
+      text-decoration: none;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .btn-outline:hover {
+      border-color: var(--g2);
+      background: var(--g4);
+    }
+
+    /* Hero visual card */
+    .hero-visual {
+      position: relative;
+    }
+
+    .hero-card {
+      background: var(--white);
+      border-radius: 1.5rem;
+      padding: 2rem;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--border);
+      animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateY(0)
+      }
+
+      50% {
+        transform: translateY(-10px)
+      }
+    }
+
+    .hero-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-box {
+      background: var(--g4);
+      border-radius: 0.85rem;
+      padding: 1.1rem;
+    }
+
+    .stat-box .num {
+      font-family: var(--font-head);
+      font-size: 1.8rem;
+      color: var(--g1);
+    }
+
+    .stat-box .lbl {
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-weight: 500;
+      margin-top: 0.2rem;
+    }
+
+    .live-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--g1);
+    }
+
+    .ecg-line {
+      width: 100%;
+      height: 40px;
+      margin-bottom: 1rem;
+    }
+
+    /* ─── SECTION BASE ─── */
+    .section {
+      position: relative;
+      z-index: 1;
+      padding: 5rem 2rem;
+    }
+
+    .section-inner {
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+
+    .section-head {
+      text-align: center;
+      margin-bottom: 3.5rem;
+    }
+
+    .section-head h2 {
+      font-family: var(--font-head);
+      font-size: clamp(2rem, 4vw, 2.8rem);
+      margin-bottom: 0.75rem;
+    }
+
+    .section-head h2 em {
+      color: var(--g1);
+      font-style: italic;
+    }
+
+    .section-head p {
+      color: var(--muted);
+      font-size: 1.05rem;
+      max-width: 580px;
+      margin: 0 auto;
+    }
+
+    .section-alt {
+      background: hsl(160, 20%, 95%);
+    }
+
+    .section-white {
+      background: var(--white);
+    }
+
+    /* ─── STATS STRIP ─── */
+    .stats-strip {
+      background: var(--grad);
+      color: #fff;
+      padding: 2.5rem 2rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .stats-grid {
+      max-width: 1300px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2rem;
+    }
+
+    @media(max-width: 700px) {
+      .stats-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-item .big {
+      font-family: var(--font-head);
+      font-size: 2.6rem;
+      color: #fff;
+    }
+
+    .stat-item .sml {
+      font-size: 0.88rem;
+      color: rgba(255, 255, 255, 0.75);
+      margin-top: 0.25rem;
+    }
+
+    /* ─── TOOLS GRID ─── */
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .tool-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 1.75rem;
+      box-shadow: var(--shadow);
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      transition: transform 0.25s, box-shadow 0.25s;
+      cursor: pointer;
+    }
+
+    .tool-card:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .tool-icon {
+      width: 54px;
+      height: 54px;
+      border-radius: 0.9rem;
+      background: var(--g4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tool-icon svg {
+      width: 26px;
+      height: 26px;
+      stroke: var(--g1);
+    }
+
+    .tool-card h3 {
+      font-weight: 700;
+      font-size: 1.05rem;
+    }
+
+    .tool-card p {
+      font-size: 0.87rem;
+      color: var(--muted);
+    }
+
+    .tool-card .arrow-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--g1);
+      margin-top: auto;
+    }
+
+    /* ─── FEATURES ─── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .feat-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 2rem;
+      box-shadow: var(--shadow);
+      transition: transform 0.25s, box-shadow 0.25s;
+    }
+
+    .feat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .feat-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 0.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.25rem;
+    }
+
+    .feat-icon.teal {
+      background: #d4f5ea;
+    }
+
+    .feat-icon.teal svg {
+      stroke: var(--g1);
+    }
+
+    .feat-icon.amber {
+      background: #fef3cd;
+    }
+
+    .feat-icon.amber svg {
+      stroke: #c67c00;
+    }
+
+    .feat-icon.violet {
+      background: #ede9fe;
+    }
+
+    .feat-icon.violet svg {
+      stroke: #7c3aed;
+    }
+
+    .feat-icon.sky {
+      background: #dbeafe;
+    }
+
+    .feat-icon.sky svg {
+      stroke: #1d4ed8;
+    }
+
+    .feat-icon svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .feat-card h3 {
+      font-weight: 700;
+      font-size: 1.05rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .feat-card p {
+      font-size: 0.875rem;
+      color: var(--muted);
+      margin-bottom: 1.1rem;
+      line-height: 1.65;
+    }
+
+    .resource-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .resource-list a {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--g1);
+      text-decoration: none;
+      transition: gap 0.2s;
+    }
+
+    .resource-list a:hover {
+      gap: 0.8rem;
+    }
+
+    .feat-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+    }
+
+    .tag {
+      font-size: 0.73rem;
+      font-weight: 600;
+      padding: 0.22rem 0.65rem;
+      border-radius: 999px;
+    }
+
+    .tag.green {
+      background: #d4f5ea;
+      color: var(--g1);
+    }
+
+    .tag.amber {
+      background: #fef3cd;
+      color: #92600a;
+    }
+
+    .tag.violet {
+      background: #ede9fe;
+      color: #6d28d9;
+    }
+
+    .tag.sky {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    /* ─── TECH PILLS ─── */
+    .tech-strip {
+      background: var(--g4);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 1.5rem 2rem;
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+    }
+
+    .tech-track {
+      display: flex;
+      gap: 1rem;
+      animation: scroll-tech 25s linear infinite;
+      width: max-content;
+    }
+
+    .tech-strip:hover .tech-track {
+      animation-play-state: paused;
+    }
+
+    @keyframes scroll-tech {
+      from {
+        transform: translateX(0)
+      }
+
+      to {
+        transform: translateX(-50%)
+      }
+    }
+
+    .tech-pill {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.45rem 1rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--muted);
+      box-shadow: var(--shadow);
+      white-space: nowrap;
+    }
+
+    .tech-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--g2);
+    }
+
+    /* ─── TESTIMONIALS ─── */
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .testi-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 1.75rem;
+      box-shadow: var(--shadow);
+    }
+
+    .testi-stars {
+      color: var(--accent);
+      font-size: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .testi-text {
+      font-size: 0.92rem;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 1.2rem;
+      font-style: italic;
+    }
+
+    .testi-author {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+    }
+
+    .testi-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--grad);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    .testi-name {
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    .testi-role {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    /* ─── HOW IT WORKS ─── */
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .step-card {
+      text-align: center;
+      padding: 2rem 1.5rem;
+    }
+
+    .step-num {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: var(--grad);
+      color: #fff;
+      font-family: var(--font-head);
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.25rem;
+      box-shadow: 0 6px 20px rgba(10, 110, 80, 0.3);
+    }
+
+    .step-card h3 {
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .step-card p {
+      font-size: 0.875rem;
+      color: var(--muted);
+    }
+
+    /* ─── CTA BANNER ─── */
+    .cta-banner {
+      background: var(--grad);
+      padding: 5rem 2rem;
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .cta-banner::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='20'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+
+    .cta-banner h2 {
+      font-family: var(--font-head);
+      font-size: clamp(2rem, 4vw, 3rem);
+      color: #fff;
+      margin-bottom: 1rem;
+      position: relative;
+    }
+
+    .cta-banner p {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 1.1rem;
+      max-width: 540px;
+      margin: 0 auto 2.5rem;
+      position: relative;
+    }
+
+    .cta-btns {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      position: relative;
+    }
+
+    .btn-white {
+      background: #fff;
+      color: var(--g1);
+      padding: 0.85rem 1.8rem;
+      border-radius: var(--radius);
+      font-weight: 600;
+      font-size: 1rem;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: transform 0.2s;
+    }
+
+    .btn-white:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: #fff;
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      padding: 0.85rem 1.8rem;
+      border-radius: var(--radius);
+      font-weight: 600;
+      font-size: 1rem;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .btn-ghost:hover {
+      border-color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      background: var(--dark);
+      color: rgba(255, 255, 255, 0.6);
+      padding: 4rem 2rem 2rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .footer-inner {
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+
+    .footer-top {
+      display: grid;
+      grid-template-columns: 1.6fr 1fr 1fr 1fr;
+      gap: 3rem;
+      margin-bottom: 3rem;
+    }
+
+    @media(max-width: 900px) {
+      .footer-top {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media(max-width: 500px) {
+      .footer-top {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .footer-brand .logo-text {
+      color: #fff;
+    }
+
+    .footer-brand p {
+      font-size: 0.87rem;
+      margin-top: 0.9rem;
+      line-height: 1.7;
+    }
+
+    .footer-col h4 {
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.875rem;
+      margin-bottom: 1rem;
+    }
+
+    .footer-col a {
+      display: block;
+      color: rgba(255, 255, 255, 0.55);
+      font-size: 0.84rem;
+      text-decoration: none;
+      margin-bottom: 0.55rem;
+      transition: color 0.2s;
+    }
+
+    .footer-col a:hover {
+      color: var(--g3);
+    }
+
+    .footer-bottom {
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding-top: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+    }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes pulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 rgba(18, 163, 116, 0.5)
+      }
+
+      50% {
+        box-shadow: 0 0 0 8px rgba(18, 163, 116, 0)
+      }
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(28px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.65s ease, transform 0.65s ease;
+    }
+
+    .reveal.in-view {
+      opacity: 1;
+      transform: none;
+    }
+
+    .delay-1 {
+      transition-delay: 0.1s;
+    }
+
+    .delay-2 {
+      transition-delay: 0.2s;
+    }
+
+    .delay-3 {
+      transition-delay: 0.3s;
+    }
+
+    .delay-4 {
+      transition-delay: 0.4s;
+    }
+
+    .delay-5 {
+      transition-delay: 0.5s;
+    }
+
+
+    /* ─── MODAL OVERLAY ─── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 8000;
+      background: rgba(8, 44, 32, 0.55);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--white);
+      border-radius: 1.5rem;
+      max-width: 640px;
+      width: 100%;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.2);
+      animation: modalIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    @keyframes modalIn {
+      from {
+        opacity: 0;
+        transform: scale(0.85)
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1)
+      }
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.5rem 2rem 1rem;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: var(--white);
+      z-index: 1;
+      border-radius: 1.5rem 1.5rem 0 0;
+    }
+
+    .modal-header h3 {
+      font-family: var(--font-head);
+      font-size: 1.4rem;
+    }
+
+    .modal-close {
+      background: var(--g4);
+      border: none;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--g1);
+      font-size: 1.2rem;
+      transition: background 0.2s;
+    }
+
+    .modal-close:hover {
+      background: var(--border);
+    }
+
+    .modal-body {
+      padding: 1.5rem 2rem 2rem;
+    }
+
+    /* Survey Form */
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .form-label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 0.4rem;
+      color: var(--dark);
+    }
+
+    .form-input,
+    .form-select,
+    .form-textarea {
+      width: 100%;
+      padding: 0.7rem 1rem;
+      border: 1.5px solid var(--border);
+      border-radius: 0.7rem;
+      font-family: var(--font-body);
+      font-size: 0.92rem;
+      background: var(--off);
+      color: var(--dark);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus {
+      border-color: var(--g2);
+      box-shadow: 0 0 0 3px rgba(18, 163, 116, 0.12);
+    }
+
+    .form-textarea {
+      resize: vertical;
+      min-height: 90px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .symptom-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .chip {
+      padding: 0.35rem 0.85rem;
+      border-radius: 999px;
+      border: 1.5px solid var(--border);
+      background: var(--off);
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .chip.selected {
+      background: var(--g4);
+      border-color: var(--g2);
+      color: var(--g1);
+    }
+
+    .progress-bar {
+      background: var(--g4);
+      border-radius: 999px;
+      height: 6px;
+      margin-bottom: 1.5rem;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: var(--grad);
+      transition: width 0.4s ease;
+    }
+
+    /* Voice modal */
+    .voice-wave {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 4px;
+      height: 60px;
+      margin: 1.5rem 0;
+    }
+
+    .voice-wave span {
+      width: 5px;
+      border-radius: 3px;
+      background: var(--g2);
+      display: block;
+    }
+
+    .voice-wave.active span {
+      animation: wave 0.8s ease-in-out infinite alternate;
+    }
+
+    .voice-wave span:nth-child(1) {
+      height: 20px;
+      animation-delay: 0.0s
+    }
+
+    .voice-wave span:nth-child(2) {
+      height: 40px;
+      animation-delay: 0.1s
+    }
+
+    .voice-wave span:nth-child(3) {
+      height: 55px;
+      animation-delay: 0.2s
+    }
+
+    .voice-wave span:nth-child(4) {
+      height: 40px;
+      animation-delay: 0.3s
+    }
+
+    .voice-wave span:nth-child(5) {
+      height: 60px;
+      animation-delay: 0.4s
+    }
+
+    .voice-wave span:nth-child(6) {
+      height: 40px;
+      animation-delay: 0.5s
+    }
+
+    .voice-wave span:nth-child(7) {
+      height: 55px;
+      animation-delay: 0.6s
+    }
+
+    .voice-wave span:nth-child(8) {
+      height: 40px;
+      animation-delay: 0.7s
+    }
+
+    .voice-wave span:nth-child(9) {
+      height: 20px;
+      animation-delay: 0.8s
+    }
+
+    @keyframes wave {
+      from {
+        transform: scaleY(0.4)
+      }
+
+      to {
+        transform: scaleY(1)
+      }
+    }
+
+    .voice-btn {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: var(--grad);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1rem;
+      box-shadow: 0 6px 24px rgba(10, 110, 80, 0.35);
+      transition: transform 0.2s;
+    }
+
+    .voice-btn:hover {
+      transform: scale(1.08);
+    }
+
+    .voice-btn.listening {
+      animation: pulse-ring 1.5s infinite;
+    }
+
+    @keyframes pulse-ring {
+      0% {
+        box-shadow: 0 0 0 0 rgba(18, 163, 116, 0.6)
+      }
+
+      70% {
+        box-shadow: 0 0 0 18px rgba(18, 163, 116, 0)
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(18, 163, 116, 0)
+      }
+    }
+
+    .voice-transcript {
+      background: var(--g4);
+      border-radius: 0.85rem;
+      padding: 1rem;
+      font-size: 0.92rem;
+      min-height: 60px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .voice-response {
+      background: var(--off);
+      border-radius: 0.85rem;
+      padding: 1rem;
+      font-size: 0.9rem;
+      color: var(--dark);
+      margin-top: 1rem;
+      display: none;
+    }
+
+    .voice-response.show {
+      display: block;
+    }
+
+    /* Diet plan modal */
+    .diet-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .diet-opt {
+      border: 1.5px solid var(--border);
+      border-radius: 0.7rem;
+      padding: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .diet-opt:hover,
+    .diet-opt.sel {
+      border-color: var(--g2);
+      background: var(--g4);
+    }
+
+    .diet-opt .dico {
+      font-size: 1.5rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .diet-opt .dinm {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--dark);
+    }
+
+    .meal-plan {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .meal-item {
+      background: var(--g4);
+      border-radius: 0.75rem;
+      padding: 0.85rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .meal-time {
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: var(--g1);
+      min-width: 90px;
+    }
+
+    .meal-desc {
+      font-size: 0.87rem;
+      color: var(--dark);
+    }
+
+    .meal-cal {
+      margin-left: auto;
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    /* Predictor modal */
+    .predictor-result {
+      background: var(--g4);
+      border-radius: 0.85rem;
+      padding: 1.25rem;
+      margin-top: 1.25rem;
+      display: none;
+    }
+
+    .predictor-result.show {
+      display: block;
+    }
+
+    .pred-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .pred-bar-wrap {
+      flex: 1;
+      background: var(--white);
+      border-radius: 999px;
+      height: 8px;
+    }
+
+    .pred-bar {
+      height: 100%;
+      border-radius: 999px;
+      background: var(--grad);
+      width: 0;
+      transition: width 1s ease;
+    }
+
+    .pred-name {
+      font-weight: 600;
+      font-size: 0.88rem;
+      min-width: 160px;
+    }
+
+    .pred-pct {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--g1);
+      min-width: 40px;
+      text-align: right;
+    }
+
+    /* Diet info modal */
+    .food-search {
+      position: relative;
+      margin-bottom: 1.25rem;
+    }
+
+    .food-results {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .food-item {
+      background: var(--off);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1rem;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.5rem;
+    }
+
+    .food-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .food-macros {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      margin-top: 0.4rem;
+    }
+
+    .macro {
+      font-size: 0.78rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      background: var(--g4);
+      color: var(--g1);
+      font-weight: 600;
+    }
+
+    .food-cal {
+      font-family: var(--font-head);
+      font-size: 1.4rem;
+      color: var(--g1);
+      align-self: center;
+    }
+
+    .micro-section {
+      margin-top: 1.5rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .micro-section h4 {
+      font-family: var(--font-head);
+      font-size: 1.1rem;
+      color: var(--g1);
+      margin-bottom: 0.35rem;
+    }
+
+    .micro-note {
+      font-size: 0.84rem;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+
+    .micro-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.85rem;
+    }
+
+    .micro-card {
+      background: linear-gradient(180deg, #f7fdfb 0%, var(--off) 100%);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1rem;
+      box-shadow: 0 10px 24px rgba(18, 163, 116, 0.06);
+    }
+
+    .micro-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .micro-name {
+      font-weight: 800;
+      color: var(--g1);
+      font-size: 0.95rem;
+      line-height: 1.35;
+    }
+
+    .micro-type {
+      font-size: 0.72rem;
+      padding: 0.22rem 0.55rem;
+      border-radius: 999px;
+      background: var(--g4);
+      color: var(--g1);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .micro-card p {
+      font-size: 0.82rem;
+      color: var(--dark);
+      line-height: 1.6;
+      margin-bottom: 0.45rem;
+    }
+
+    .micro-label {
+      color: var(--g1);
+      font-weight: 700;
+    }
+
+    /* Responsive tweaks */
+    @media(max-width: 640px) {
+      .chat-panel {
+        width: calc(100vw - 2rem);
+        right: 1rem;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .modal {
+        border-radius: 1rem;
+      }
+
+      .micro-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Animated canvas background -->
+  <canvas id="bg-canvas"></canvas>
+
+  <!-- ═══════════════ NAVBAR ═══════════════ -->
+  <nav id="main-nav">
+    <div class="nav-inner">
+      <a href="#" class="logo-wrap">
+        <div class="logo-icon">
+          <svg width="22" height="22" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"
+            stroke-linejoin="round" viewBox="0 0 24 24">
+            <path
+              d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6 6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.3.3 0 1 0 .2.3" />
+            <path d="M8 15v1a6 6 0 0 0 6 6 6 6 0 0 0 6-6v-4" />
+            <circle cx="20" cy="10" r="2" />
+          </svg>
+        </div>
+        <span class="logo-text">Sehat <span>Sathi</span></span>
+      </a>
+      <div class="nav-links">
+        <a href="#home" class="active">Home</a>
+        <a href="#tools">Tools</a>
+        <a href="#how">How It Works</a>
+        <a href="#resources">Resources</a>
+        <a href="#about">About</a>
+        <a href="#survey-modal" class="nav-cta" onclick="openModal('survey-modal');return false;">Start Survey →</a>
+      </div>
+      <button class="hamburger" onclick="document.getElementById('mob').classList.toggle('open')">
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M3 12h18M3 6h18M3 18h18" />
+        </svg>
+      </button>
+    </div>
+    <div class="mobile-menu" id="mob">
+      <a href="#home">Home</a>
+      <a href="#tools">Tools</a>
+      <a href="#how">How It Works</a>
+      <a href="#resources">Resources</a>
+      <a href="#about">About</a>
+      <a href="#" onclick="openModal('survey-modal');return false;" style="color:var(--g1);font-weight:700;">Start
+        Survey →</a>
+    </div>
+  </nav>
+
+  <!-- ═══════════════ HERO ═══════════════ -->
+  <section class="hero" id="home">
+    <div class="hero-grid">
+      <div style="animation: fadeUp 0.7s ease both;">
+        <div class="hero-badge">
+          <div class="badge-dot"></div>
+          AI-Powered Health Analysis Platform
+        </div>
+        <h1>Your Health,<br /><em>Intelligently</em><br />Analyzed</h1>
+        <p class="hero-sub">Take surveys, get personalized diet plans, predict health risks, and talk to your AI health
+          companion — all in one trusted platform.</p>
+        <div class="hero-btns">
+          <button class="btn-primary" onclick="openModal('survey-modal')">
+            Start Health Survey
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </button>
+          <a href="#tools" class="btn-outline">Explore Tools</a>
+        </div>
+      </div>
+
+      <div class="hero-visual" style="animation: fadeUp 0.7s 0.15s ease both;">
+        <div class="hero-card">
+          <svg class="ecg-line" viewBox="0 0 300 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <polyline points="0,20 30,20 45,20 55,5 65,35 75,10 85,30 95,20 300,20" stroke="#12a374" stroke-width="2"
+              fill="none" stroke-linecap="round" stroke-linejoin="round">
+              <animate attributeName="stroke-dasharray" from="0 400" to="400 0" dur="2s" repeatCount="indefinite" />
+            </polyline>
+          </svg>
+          <div class="hero-stats">
+            <div class="stat-box">
+              <div class="num">98%</div>
+              <div class="lbl">Prediction Accuracy</div>
+            </div>
+            <div class="stat-box">
+              <div class="num">500+</div>
+              <div class="lbl">Symptoms Covered</div>
+            </div>
+
+          </div>
+          <div class="live-indicator">
+            <div class="badge-dot"></div>
+            AI Health Engine — Active
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ STATS STRIP ═══════════════ -->
+  <div class="stats-strip">
+    <div class="stats-grid">
+
+      <div class="stat-item">
+        <div class="big">98%</div>
+        <div class="sml">Diagnostic Accuracy</div>
+      </div>
+      <div class="stat-item">
+        <div class="big">500+</div>
+        <div class="sml">Disease Conditions</div>
+      </div>
+      <div class="stat-item">
+        <div class="big">24/7</div>
+        <div class="sml">AI Support Available</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ TECH STRIP ═══════════════ -->
+  <div class="tech-strip">
+    <div class="tech-track" id="techTrack">
+      <div class="tech-pill">
+        <div class="tech-dot"></div>Whisper ASR
+      </div>
+      <div class="tech-pill">
+        <div class="tech-dot"></div>Scikit-learn
+      </div>
+      <div class="tech-pill">
+        <div class="tech-dot"></div>SHAP Explainability
+      </div>
+      <div class="tech-pill">
+        <div class="tech-dot"></div>gTTS Voice Output
+      </div>
+
+      <div class="tech-pill">
+        <div class="tech-dot"></div>FastAPI Backend
+      </div>
+      <div class="tech-pill">
+        <div class="tech-dot"></div>Public Symptom Datasets
+      </div>
+      <div class="tech-pill">
+        <div class="tech-dot"></div>React + Vite
+      </div>
+      <div class="tech-pill">
+        <div class="tech-dot"></div>WHO Data
+      </div>
+      <div class="tech-pill">
+        <div class="tech-dot"></div>PhysioNet
+      </div>
+      <!-- duplicate for seamless loop -->
+      <div class="tech-pill">
+        <div class="tech-dot"></div>Whisper ASR
+      </div>
+      <div class="tech-pill">
+        <div class="tech-dot"></div>Scikit-learn
+      </div>
+      <div class="tech-pill">
+        <div class="tech-dot"></div>SHAP Explainability
+      </div>
+      <div class="tech-pill">
+        <div class="tech-dot"></div>gTTS Voice Output
+      </div>
+
+      <div class="tech-pill">
+        <div class="tech-dot"></div>FastAPI Backend
+      </div>
+      <div class="tech-pill">
+        <div class="tech-dot"></div>Public Symptom Datasets
+      </div>
+      <div class="tech-pill">
+        <div class="tech-dot"></div>React + Vite
+      </div>
+      <div class="tech-pill">
+        <div class="tech-dot"></div>WHO Data
+      </div>
+      <div class="tech-pill">
+        <div class="tech-dot"></div>PhysioNet
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ TOOLS ═══════════════ -->
+  <section class="section section-alt" id="tools">
+    <div class="section-inner">
+      <div class="section-head">
+        <h2>Our <em>Core Tools</em></h2>
+        <p>Comprehensive health analysis tools designed to help you make informed, data-driven decisions about your
+          wellbeing.</p>
+      </div>
+      <div class="tools-grid">
+        <div class="tool-card reveal delay-1" onclick="openModal('survey-modal')">
+          <div class="tool-icon">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M9 12h6M9 8h6M9 16h4M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" />
+            </svg>
+          </div>
+          <h3>Health Survey</h3>
+          <p>Complete a comprehensive 10-step health assessment to understand your full wellness profile and get
+            personalised recommendations.</p>
+          <span class="arrow-btn">Start Survey →</span>
+        </div>
+
+        <div class="tool-card reveal delay-2" onclick="openModal('diet-modal')">
+          <div class="tool-icon">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M12 2a9 9 0 1 0 0 18A9 9 0 0 0 12 2z" />
+              <path d="M12 6v6l4 2" />
+            </svg>
+          </div>
+          <h3>Diet Plan Generator</h3>
+          <p>Get a fully personalized diet plan based on your BMI, health goals, dietary preferences, and medical
+            conditions.</p>
+          <span class="arrow-btn">Generate Plan →</span>
+        </div>
+
+        <div class="tool-card reveal delay-3" onclick="openModal('diet-info-modal')">
+          <div class="tool-icon">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 16v-4M12 8h.01" />
+            </svg>
+          </div>
+          <h3>Nutrition & Diet Info</h3>
+          <p>Explore detailed nutritional information for thousands of foods. Understand macros, calories, and vitamins
+            at a glance.</p>
+          <span class="arrow-btn">Explore Nutrition →</span>
+        </div>
+
+        <div class="tool-card reveal delay-4" onclick="openModal('predictor-modal');switchPdTab('symptoms')">
+          <div class="tool-icon">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path
+                d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6 6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.3.3 0 1 0 .2.3" />
+              <path d="M8 15v1a6 6 0 0 0 6 6 6 6 0 0 0 6-6v-4" />
+              <circle cx="20" cy="10" r="2" />
+            </svg>
+          </div>
+          <h3>Disease Predictor</h3>
+          <p>Enter your symptoms and get AI-powered insights on possible health conditions with probability scores and
+            next steps.</p>
+          <span class="arrow-btn">Check Symptoms →</span>
+        </div>
+
+        <div class="tool-card reveal delay-1" onclick="openModal('predictor-modal');switchPdTab('voice')">
+          <div class="tool-icon">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8" />
+            </svg>
+          </div>
+          <h3>Voice input for prediction </h3>
+          <p>Talk to our intelligent voice assistant for hands-free health queries. Powered by Whisper ASR and gTTS for
+            natural conversation.</p>
+          <span class="arrow-btn">Talk Now →</span>
+        </div>
+
+        <div class="tool-card reveal delay-3" onclick="openModal('bmi-modal')">
+          <div class="tool-icon">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M3 3v18h18" />
+              <path d="m19 9-5 5-4-4-3 3" />
+            </svg>
+          </div>
+          <h3>BMI Calculator</h3>
+          <p>Calculate your Body Mass Index instantly and understand what it means for your health with actionable
+            guidance.</p>
+          <span class="arrow-btn">Calculate BMI →</span>
+        </div>
+
+        <div class="tool-card reveal delay-4" onclick="openModal('risk-modal')">
+          <div class="tool-icon">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+          </div>
+          <h3>Health Risk Assessment</h3>
+          <p>Evaluate your risk level for chronic diseases like diabetes, hypertension, and heart disease with our
+            comprehensive assessment tool.</p>
+          <span class="arrow-btn">Assess Risk →</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ HOW IT WORKS ═══════════════ -->
+  <section class="section section-white" id="how">
+    <div class="section-inner">
+      <div class="section-head">
+        <h2>How <em>It Works</em></h2>
+        <p>Getting started with Sehat Sathi is simple. Four easy steps to better health insights.</p>
+      </div>
+      <div class="steps-grid">
+        <div class="step-card reveal delay-1">
+          <div class="step-num">1</div>
+          <h3>Fill Health Survey</h3>
+          <p>Answer a set of easy questions about your symptoms, lifestyle, and medical history — takes under 5 minutes.
+          </p>
+        </div>
+        <div class="step-card reveal delay-2">
+          <div class="step-num">2</div>
+          <h3>AI Analysis</h3>
+          <p>Our ML engine powered by Scikit-learn and SHAP analyzes your data to detect patterns and risk factors.</p>
+        </div>
+        <div class="step-card reveal delay-3">
+          <div class="step-num">3</div>
+          <h3>Get Insights</h3>
+          <p>Receive a detailed health report with predicted conditions, nutrition advice, and personalized
+            recommendations.</p>
+        </div>
+        <div class="step-card reveal delay-4">
+          <div class="step-num">4</div>
+          <h3>Track & Improve</h3>
+          <p>Use our diet planner, voice assistant, and chatbot to follow up and continuously improve your health
+            journey.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ RESOURCES ═══════════════ -->
+  <section class="section section-alt" id="resources">
+    <div class="section-inner">
+      <div class="section-head">
+        <h2>Official <em>Resources</em> & Docs</h2>
+        <p>Access verified healthcare documentation, open-source AI tools, government digital health policies, and
+          public medical datasets.</p>
+      </div>
+      <div class="features-grid">
+        <div class="feat-card reveal delay-1">
+          <div class="feat-icon teal">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8" />
+            </svg>
+          </div>
+          <h3>Healthcare Voice Assistant</h3>
+          <p>Complete documentation for the AI-powered voice assistant that processes patient symptoms via speech, runs
+            ML inference, and responds with audio feedback using gTTS.</p>
+          <ul class="resource-list">
+            <li><a href="#">→ System Architecture Overview</a></li>
+            <li><a href="#">→ API Reference & Endpoints</a></li>
+            <li><a href="#">→ Audio Pipeline Guide</a></li>
+            <li><a href="#">→ Model Inference Docs</a></li>
+          </ul>
+          <div class="feat-tags"><span class="tag green">Whisper ASR</span><span class="tag green">gTTS</span><span
+              class="tag green">FastAPI</span></div>
+        </div>
+
+        <div class="feat-card reveal delay-2">
+          <div class="feat-icon amber">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path
+                d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
+            </svg>
+          </div>
+          <h3>Official Library Repositories</h3>
+          <p>Direct links to the official GitHub repositories for the core ML and audio libraries powering Sehat Sathi's
+            analysis engine.</p>
+          <ul class="resource-list">
+            <li><a href="https://github.com/openai/whisper" target="_blank">→ openai/whisper</a></li>
+            <li><a href="https://github.com/scikit-learn/scikit-learn" target="_blank">→ scikit-learn/scikit-learn</a>
+            </li>
+            <li><a href="https://github.com/slundberg/shap" target="_blank">→ slundberg/shap</a></li>
+            <li><a href="https://github.com/pndurette/gTTS" target="_blank">→ pndurette/gTTS</a></li>
+          </ul>
+          <div class="feat-tags"><span class="tag amber">Open Source</span><span class="tag amber">MIT / Apache
+              2.0</span></div>
+        </div>
+
+
+
+        <div class="feat-card reveal delay-4">
+          <div class="feat-icon sky">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <ellipse cx="12" cy="5" rx="9" ry="3" />
+              <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+              <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+            </svg>
+          </div>
+          <h3>Public Symptom-Disease Datasets</h3>
+          <p>Curated open datasets for training and evaluating the disease prediction models. All sources are
+            peer-reviewed or government-published.</p>
+          <ul class="resource-list">
+            <li><a href="https://www.kaggle.com/datasets/kaushil268/disease-prediction-using-machine-learning"
+                target="_blank">→ Kaggle: Disease Prediction Dataset</a></li>
+            <li><a href="https://www.who.int/data/collections" target="_blank">→ WHO Global Health Data</a></li>
+            <li><a href="https://data.gov.in/sector/health" target="_blank">→ data.gov.in — Health Sector</a></li>
+            <li><a href="https://physionet.org/" target="_blank">→ PhysioNet Medical Records</a></li>
+          </ul>
+          <div class="feat-tags"><span class="tag sky">Kaggle</span><span class="tag sky">WHO</span><span
+              class="tag sky">Open Data</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════ CTA BANNER ═══════════════ -->
+  <div class="cta-banner">
+    <h2>Start Your Health Journey Today</h2>
+    <div class="cta-btns">
+      <button class="btn-white" onclick="openModal('survey-modal')">
+        🩺 Begin Health Survey
+      </button>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════ FOOTER ═══════════════ -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="logo-wrap">
+            <div class="logo-icon">
+              <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2.2" viewBox="0 0 24 24">
+                <path
+                  d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6 6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.3.3 0 1 0 .2.3" />
+                <path d="M8 15v1a6 6 0 0 0 6 6 6 6 0 0 0 6-6v-4" />
+                <circle cx="20" cy="10" r="2" />
+              </svg>
+            </div>
+            <span class="logo-text">Sehat <span>Sathi</span></span>
+          </div>
+          <p>AI-powered health analysis aligned with India's Digital Health Mission. Your trusted companion for smarter
+            healthcare decisions. Built with ❤️ for India.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Tools</h4>
+          <a href="#" onclick="openModal('survey-modal');return false;">Health Survey</a>
+          <a href="#" onclick="openModal('diet-modal');return false;">Diet Plan</a>
+          <a href="#" onclick="openModal('diet-info-modal');return false;">Diet Info</a>
+          <a href="#" onclick="openModal('predictor-modal');return false;">Disease Predictor</a>
+          <a href="#" onclick="openModal('predictor-modal');switchPdTab('voice');return false;">Voice Assistant</a>
+          <a href="#" onclick="openModal('bmi-modal');return false;">BMI Calculator</a>
+        </div>
+        <div class="footer-col">
+          <h4>Resources</h4>
+          <a href="#" target="_blank">Voice Assistant Docs</a>
+          <a href="https://github.com/openai/whisper" target="_blank">Whisper Repo</a>
+          <a href="https://www.kaggle.com" target="_blank">Public Datasets</a>
+          <a href="https://www.who.int/data/collections" target="_blank">WHO Data</a>
+        </div>
+        <div class="footer-col">
+          <h4>Libraries</h4>
+          <a href="https://github.com/scikit-learn/scikit-learn" target="_blank">Scikit-learn</a>
+          <a href="https://github.com/slundberg/shap" target="_blank">SHAP</a>
+          <a href="https://github.com/pndurette/gTTS" target="_blank">gTTS</a>
+          <a href="https://data.gov.in/sector/health" target="_blank">data.gov.in</a>
+          <a href="https://physionet.org/" target="_blank">PhysioNet</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2024 Sehat Sathi. Built for India's Digital Health Future.</span>
+      </div>
+    </div>
+  </footer>
+
+
+  <!-- ═══════════════ MODAL: HEALTH SURVEY ═══════════════ -->
+  <div class="modal-overlay" id="survey-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>🩺 Health Survey</h3>
+        <button class="modal-close" onclick="closeModal('survey-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="progress-bar">
+          <div class="progress-fill" id="surveyProgress" style="width:10%"></div>
+        </div>
+        <div id="surveyStep1">
+          <h4 style="margin-bottom:1rem;font-size:1.05rem;">Step 1 of 4 — Personal Information</h4>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Full Name</label><input class="form-input"
+                placeholder="Your name" /></div>
+            <div class="form-group"><label class="form-label">Age</label><input class="form-input" type="number"
+                placeholder="25" /></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Gender</label>
+              <select class="form-select">
+                <option>Select gender</option>
+                <option>Male</option>
+                <option>Female</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="form-group"><label class="form-label">Blood Group</label>
+              <select class="form-select">
+                <option>Select</option>
+                <option>A+</option>
+                <option>A-</option>
+                <option>B+</option>
+                <option>B-</option>
+                <option>O+</option>
+                <option>O-</option>
+                <option>AB+</option>
+                <option>AB-</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Height (cm)</label><input class="form-input" type="number"
+                placeholder="170" /></div>
+            <div class="form-group"><label class="form-label">Weight (kg)</label><input class="form-input" type="number"
+                placeholder="65" /></div>
+          </div>
+          <button class="btn-primary" style="width:100%;justify-content:center;" onclick="nextSurveyStep(2)">Continue
+            →</button>
+        </div>
+        <div id="surveyStep2" style="display:none;">
+          <h4 style="margin-bottom:1rem;font-size:1.05rem;">Step 2 of 4 — Current Symptoms</h4>
+          <p style="font-size:0.87rem;color:var(--muted);margin-bottom:0.75rem;">Select all symptoms you are currently
+            experiencing:</p>
+          <div class="symptom-chips">
+            <span class="chip" onclick="this.classList.toggle('selected')">Fever</span>
+            <span class="chip" onclick="this.classList.toggle('selected')">Headache</span>
+            <span class="chip" onclick="this.classList.toggle('selected')">Fatigue</span>
+            <span class="chip" onclick="this.classList.toggle('selected')">Cough</span>
+            <span class="chip" onclick="this.classList.toggle('selected')">Breathlessness</span>
+            <span class="chip" onclick="this.classList.toggle('selected')">Chest Pain</span>
+            <span class="chip" onclick="this.classList.toggle('selected')">Nausea</span>
+            <span class="chip" onclick="this.classList.toggle('selected')">Dizziness</span>
+            <span class="chip" onclick="this.classList.toggle('selected')">Joint Pain</span>
+            <span class="chip" onclick="this.classList.toggle('selected')">Skin Rash</span>
+            <span class="chip" onclick="this.classList.toggle('selected')">Weight Gain</span>
+            <span class="chip" onclick="this.classList.toggle('selected')">Weight Loss</span>
+            <span class="chip" onclick="this.classList.toggle('selected')">Insomnia</span>
+            <span class="chip" onclick="this.classList.toggle('selected')">Back Pain</span>
+            <span class="chip" onclick="this.classList.toggle('selected')">Anxiety</span>
+            <span class="chip" onclick="this.classList.toggle('selected')">Swelling</span>
+          </div>
+          <div class="form-group" style="margin-top:1.25rem;">
+            <label class="form-label">Any other symptoms?</label>
+            <textarea class="form-textarea" placeholder="Describe any other symptoms..."></textarea>
+          </div>
+          <div style="display:flex;gap:0.75rem;margin-top:0.5rem;">
+            <button class="btn-outline" style="flex:1;justify-content:center;" onclick="nextSurveyStep(1)">←
+              Back</button>
+            <button class="btn-primary" style="flex:2;justify-content:center;" onclick="nextSurveyStep(3)">Continue
+              →</button>
+          </div>
+        </div>
+        <div id="surveyStep3" style="display:none;">
+          <h4 style="margin-bottom:1rem;font-size:1.05rem;">Step 3 of 4 — Medical History</h4>
+          <div class="form-group"><label class="form-label">Do you have any existing conditions?</label>
+            <select class="form-select">
+              <option>None</option>
+              <option>Diabetes</option>
+              <option>Hypertension</option>
+              <option>Asthma</option>
+              <option>Heart Disease</option>
+              <option>Thyroid</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Current medications (if any)</label><input
+              class="form-input" placeholder="e.g. Metformin 500mg" /></div>
+          <div class="form-group"><label class="form-label">Family history of major diseases?</label>
+            <select class="form-select">
+              <option>None</option>
+              <option>Diabetes</option>
+              <option>Heart Disease</option>
+              <option>Cancer</option>
+              <option>Hypertension</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Lifestyle</label>
+            <select class="form-select">
+              <option>Sedentary (no exercise)</option>
+              <option>Lightly active</option>
+              <option>Moderately active</option>
+              <option>Very active</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:0.75rem;margin-top:0.5rem;">
+            <button class="btn-outline" style="flex:1;justify-content:center;" onclick="nextSurveyStep(2)">←
+              Back</button>
+            <button class="btn-primary" style="flex:2;justify-content:center;" onclick="nextSurveyStep(4)">Continue
+              →</button>
+          </div>
+        </div>
+        <div id="surveyStep4" style="display:none;">
+          <h4 style="margin-bottom:1rem;font-size:1.05rem;">Step 4 of 4 — Lifestyle & Diet</h4>
+          <div class="form-group"><label class="form-label">Diet type</label>
+            <select class="form-select">
+              <option>Vegetarian</option>
+              <option>Non-Vegetarian</option>
+              <option>Vegan</option>
+              <option>Jain</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Daily water intake</label>
+            <select class="form-select">
+              <option>Less than 1L</option>
+              <option>1–2 L</option>
+              <option>2–3 L</option>
+              <option>More than 3L</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Sleep duration</label>
+            <select class="form-select">
+              <option>Less than 5 hrs</option>
+              <option>5–6 hrs</option>
+              <option>7–8 hrs</option>
+              <option>More than 8 hrs</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Smoking / Alcohol</label>
+            <select class="form-select">
+              <option>None</option>
+              <option>Occasional alcohol</option>
+              <option>Regular alcohol</option>
+              <option>Smoker</option>
+              <option>Both</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:0.75rem;margin-top:0.5rem;">
+            <button class="btn-outline" style="flex:1;justify-content:center;" onclick="nextSurveyStep(3)">←
+              Back</button>
+            <button class="btn-primary" style="flex:2;justify-content:center;background:var(--grad);"
+              onclick="submitSurvey()">Submit & Analyze 🧬</button>
+          </div>
+        </div>
+        <div id="surveyResult" style="display:none; text-align:center; padding: 1rem 0;">
+          <div style="font-size:3rem;margin-bottom:1rem;">✅</div>
+          <h3 style="font-family:var(--font-head);font-size:1.6rem;margin-bottom:0.75rem;color:var(--g1);">Analysis
+            Complete!</h3>
+          <p style="color:var(--muted);margin-bottom:1.25rem;">Your health profile has been analyzed. Based on your
+            inputs, here are your personalized recommendations:</p>
+          <div style="background:var(--g4);border-radius:1rem;padding:1.25rem;text-align:left;margin-bottom:1rem;">
+            <div style="font-weight:700;margin-bottom:0.5rem;color:var(--g1);">🔍 Key Findings:</div>
+            <ul
+              style="list-style:none;display:flex;flex-direction:column;gap:0.4rem;font-size:0.9rem;color:var(--dark);">
+              <li>• BMI is within normal range — maintain current weight</li>
+              <li>• Moderate hydration recommended — increase water intake</li>
+              <li>• Sleep pattern is adequate — keep it up</li>
+              <li>• No critical risk flags detected at this time</li>
+            </ul>
+          </div>
+          <div style="display:flex;gap:0.75rem;flex-wrap:wrap;justify-content:center;">
+            <button class="btn-primary" onclick="closeModal('survey-modal');openModal('diet-modal')">Get Diet Plan
+              →</button>
+            <button class="btn-outline" onclick="closeModal('survey-modal')">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ MODAL: DIET PLAN ═══════════════ -->
+  <div class="modal-overlay" id="diet-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>🥗 Diet Plan Generator</h3>
+        <button class="modal-close" onclick="closeModal('diet-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="dietForm">
+          <p style="font-size:0.9rem;color:var(--muted);margin-bottom:1.25rem;">Select your dietary preference to
+            generate a personalized meal plan:</p>
+          <div class="diet-options">
+            <div class="diet-opt" onclick="selectDiet(this,'veg')">
+              <div class="dico">🌱</div>
+              <div class="dinm">Vegetarian</div>
+            </div>
+            <div class="diet-opt" onclick="selectDiet(this,'nonveg')">
+              <div class="dico">🍗</div>
+              <div class="dinm">Non-Vegetarian</div>
+            </div>
+            <div class="diet-opt" onclick="selectDiet(this,'vegan')">
+              <div class="dico">🥦</div>
+              <div class="dinm">Vegan</div>
+            </div>
+            <div class="diet-opt" onclick="selectDiet(this,'jain')">
+              <div class="dico">🙏</div>
+              <div class="dinm">Jain</div>
+            </div>
+          </div>
+          <div class="form-group"><label class="form-label">Health Goal</label>
+            <select class="form-select" id="dietGoal">
+              <option>Weight Loss</option>
+              <option>Weight Gain</option>
+              <option>Muscle Building</option>
+              <option>General Wellness</option>
+              <option>Diabetic Friendly</option>
+              <option>Heart Healthy</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Calorie Target</label><input class="form-input"
+                id="dietCalories" placeholder="1800 kcal" /></div>
+            <div class="form-group"><label class="form-label">Meals per day</label>
+              <select class="form-select" id="dietMeals">
+                <option>3 meals</option>
+                <option>4 meals</option>
+                <option>5 meals</option>
+                <option>6 meals</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn-primary" style="width:100%;justify-content:center;" onclick="generateDiet()">Generate My
+            Diet Plan 🥗</button>
+        </div>
+        <div id="dietResult" style="display:none;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+            <h4 style="font-family:var(--font-head);">Your Personalized Plan</h4>
+            <button class="btn-outline" style="font-size:0.8rem;padding:0.4rem 0.8rem;"
+              onclick="document.getElementById('dietForm').style.display='block';document.getElementById('dietResult').style.display='none'">←
+              Redo</button>
+          </div>
+          <div class="meal-plan" id="mealPlanOutput"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ MODAL: DIET INFO ═══════════════ -->
+  <div class="modal-overlay" id="diet-info-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>🔍 Nutrition Information</h3>
+        <button class="modal-close" onclick="closeModal('diet-info-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="food-search">
+          <input class="form-input" id="foodSearch" placeholder="Search food (e.g. Apple, Rice, Chicken…)"
+            oninput="searchFood(this.value)" />
+        </div>
+        <div class="food-results" id="foodResults"></div>
+        <div class="micro-section">
+          <h4>Micronutrients Reference</h4>
+          <p class="micro-note">A practical guide to major vitamins, minerals, electrolytes, and trace nutrients. Values can vary by age, sex, pregnancy status, medical conditions, and total diet.</p>
+          <div class="micro-grid" id="micronutrientGrid"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ MODAL: DISEASE PREDICTOR + VOICE ASSISTANT ═══════════════ -->
+  <div class="modal-overlay" id="predictor-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="predictorModalTitle">🧬 Disease Predictor</h3>
+        <button class="modal-close" onclick="closeModal('predictor-modal');stopVoice()">✕</button>
+      </div>
+
+      <!-- Tab bar -->
+      <div style="display:flex;border-bottom:1px solid var(--border);background:var(--white);flex-shrink:0;">
+        <button id="pdTabSymptoms" onclick="switchPdTab('symptoms')"
+          style="flex:1;padding:0.65rem 0;border:none;background:none;cursor:pointer;font-family:var(--font-body);font-size:0.85rem;font-weight:600;color:var(--g1);border-bottom:2.5px solid var(--g1);background:var(--g4);display:flex;align-items:center;justify-content:center;gap:0.4rem;">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path
+              d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6 6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.3.3 0 1 0 .2.3" />
+            <path d="M8 15v1a6 6 0 0 0 6 6 6 6 0 0 0 6-6v-4" />
+            <circle cx="20" cy="10" r="2" />
+          </svg>
+          Symptom Checker
+        </button>
+        <button id="pdTabVoice" onclick="switchPdTab('voice')"
+          style="flex:1;padding:0.65rem 0;border:none;background:none;cursor:pointer;font-family:var(--font-body);font-size:0.85rem;font-weight:600;color:var(--muted);border-bottom:2.5px solid transparent;display:flex;align-items:center;justify-content:center;gap:0.4rem;transition:color 0.2s,border-color 0.2s;">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8" />
+          </svg>
+          Voice input for prediction
+        </button>
+      </div>
+
+      <!-- SYMPTOM CHECKER VIEW -->
+      <div id="pdSymptomView" class="modal-body">
+        <p style="font-size:0.87rem;color:var(--muted);margin-bottom:1rem;">⚠️ This is an AI-powered tool for
+          informational purposes only. Always consult a qualified doctor.</p>
+        <div class="form-group"><label class="form-label">Primary Symptoms</label>
+          <p style="font-size:0.82rem;color:var(--muted);margin-bottom:0.5rem;">Select all that apply:</p>
+          <div class="symptom-chips">
+            <span class="chip" onclick="this.classList.toggle('selected')">Fever (&gt;101°F)</span>
+            <span class="chip" onclick="this.classList.toggle('selected')">Persistent Cough</span>
+            <span class="chip" onclick="this.classList.toggle('selected')">Shortness of Breath</span>
+            <span class="chip" onclick="this.classList.toggle('selected')">Chest Pain</span>
+            <span class="chip" onclick="this.classList.toggle('selected')">Severe Headache</span>
+            <span class="chip" onclick="this.classList.toggle('selected')">Fatigue</span>
+            <span class="chip" onclick="this.classList.toggle('selected')">Nausea/Vomiting</span>
+            <span class="chip" onclick="this.classList.toggle('selected')">Diarrhea</span>
+            <span class="chip" onclick="this.classList.toggle('selected')">Skin Rash</span>
+            <span class="chip" onclick="this.classList.toggle('selected')">Joint/Muscle Pain</span>
+            <span class="chip" onclick="this.classList.toggle('selected')">Increased Thirst</span>
+            <span class="chip" onclick="this.classList.toggle('selected')">Frequent Urination</span>
+            <span class="chip" onclick="this.classList.toggle('selected')">Blurred Vision</span>
+            <span class="chip" onclick="this.classList.toggle('selected')">Swollen Lymph Nodes</span>
+          </div>
+        </div>
+        <div class="form-group"><label class="form-label">Duration of symptoms</label>
+          <select class="form-select">
+            <option>Less than 3 days</option>
+            <option>3–7 days</option>
+            <option>1–2 weeks</option>
+            <option>More than 2 weeks</option>
+            <option>Chronic (months)</option>
+          </select>
+        </div>
+        <button class="btn-primary" style="width:100%;justify-content:center;" onclick="runPredictor()">Analyze Symptoms
+          🧬</button>
+        <div class="predictor-result" id="predictorResult">
+          <h4 style="margin-bottom:1rem;color:var(--g1);">Prediction Results</h4>
+          <div class="pred-item"><span class="pred-name">Common Cold / Flu</span>
+            <div class="pred-bar-wrap">
+              <div class="pred-bar" id="pb1"></div>
+            </div><span class="pred-pct" id="pp1"></span>
+          </div>
+          <div class="pred-item"><span class="pred-name">Viral Infection</span>
+            <div class="pred-bar-wrap">
+              <div class="pred-bar" id="pb2"></div>
+            </div><span class="pred-pct" id="pp2"></span>
+          </div>
+          <div class="pred-item"><span class="pred-name">Bacterial Infection</span>
+            <div class="pred-bar-wrap">
+              <div class="pred-bar" id="pb3"></div>
+            </div><span class="pred-pct" id="pp3"></span>
+          </div>
+          <div class="pred-item"><span class="pred-name">Dengue Fever</span>
+            <div class="pred-bar-wrap">
+              <div class="pred-bar" id="pb4"></div>
+            </div><span class="pred-pct" id="pp4"></span>
+          </div>
+          <p style="font-size:0.8rem;color:var(--muted);margin-top:0.75rem;">Please consult a qualified physician for
+            proper diagnosis and treatment.</p>
+        </div>
+      </div>
+
+      <!-- VOICE ASSISTANT VIEW -->
+      <div id="pdVoiceView" style="display:none;padding:1.75rem 2rem 2rem;text-align:center;">
+        <p style="color:var(--muted);font-size:0.9rem;margin-bottom:1rem;">Press the mic button and speak your health
+          query. The AI will analyze and respond.</p>
+        <div style="display:flex;align-items:center;justify-content:center;gap:0.6rem;margin-bottom:1rem;flex-wrap:wrap;">
+          <label for="voiceLanguage" style="font-size:0.85rem;font-weight:600;color:var(--g1);">Voice language</label>
+          <select id="voiceLanguage" class="form-select" style="width:auto;min-width:220px;">
+            <option value="auto">Auto (English / Hindi / Marathi)</option>
+            <option value="en-IN">English</option>
+            <option value="hi-IN">Hindi</option>
+            <option value="mr-IN">Marathi</option>
+          </select>
+        </div>
+        <div class="voice-wave" id="voiceWave">
+          <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()">
+          <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8" />
+          </svg>
+        </button>
+        <p id="voiceStatus" style="font-weight:600;font-size:0.9rem;color:var(--muted);margin-bottom:1rem;">Tap to speak
+        </p>
+        <div class="voice-transcript" id="voiceTranscript">Your spoken text will appear here...</div>
+        <div class="voice-response" id="voiceResponseBox">
+          <strong style="color:var(--g1);">Sehat AI Response:</strong><br />
+          <span id="voiceResponse"></span>
+        </div>
+        <div style="margin-top:1.25rem;display:flex;gap:0.75rem;justify-content:center;">
+          <button class="btn-outline" style="font-size:0.85rem;" onclick="typeQuery()">Type Instead</button>
+          <button class="btn-primary" style="font-size:0.85rem;" onclick="stopVoice()">Stop &amp; Reset</button>
+        </div>
+        <div id="voiceTypeBox" style="display:none;margin-top:1rem;">
+          <div style="display:flex;gap:0.5rem;">
+            <input class="form-input" id="voiceTypeInput" placeholder="Type your health question..." />
+            <button class="chat-send"
+              onclick="processVoiceText(document.getElementById('voiceTypeInput').value)">→</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ═══════════════ MODAL: BMI CALCULATOR ═══════════════ -->
+  <div class="modal-overlay" id="bmi-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>⚖️ BMI Calculator</h3>
+        <button class="modal-close" onclick="closeModal('bmi-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Height (cm)</label><input class="form-input" id="bmiHeight"
+              type="number" placeholder="170" /></div>
+          <div class="form-group"><label class="form-label">Weight (kg)</label><input class="form-input" id="bmiWeight"
+              type="number" placeholder="65" /></div>
+        </div>
+        <div class="form-group"><label class="form-label">Age</label><input class="form-input" id="bmiAge" type="number"
+            placeholder="25" /></div>
+        <div class="form-group"><label class="form-label">Gender</label>
+          <select class="form-select" id="bmiGender">
+            <option>Male</option>
+            <option>Female</option>
+          </select>
+        </div>
+        <button class="btn-primary" style="width:100%;justify-content:center;" onclick="calcBMI()">Calculate
+          BMI</button>
+        <div id="bmiResult"
+          style="display:none;background:var(--g4);border-radius:1rem;padding:1.5rem;text-align:center;margin-top:1.25rem;">
+          <div style="font-size:3rem;font-family:var(--font-head);color:var(--g1);" id="bmiValue"></div>
+          <div style="font-size:1rem;font-weight:700;margin-bottom:0.5rem;" id="bmiCategory"></div>
+          <div style="font-size:0.87rem;color:var(--muted);" id="bmiAdvice"></div>
+          <div style="margin-top:1rem;display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;">
+            <span
+              style="padding:0.25rem 0.75rem;border-radius:999px;font-size:0.78rem;font-weight:600;background:#dbeafe;color:#1e40af;">Underweight:
+              &lt;18.5</span>
+            <span
+              style="padding:0.25rem 0.75rem;border-radius:999px;font-size:0.78rem;font-weight:600;background:#d4f5ea;color:var(--g1);">Normal:
+              18.5–24.9</span>
+            <span
+              style="padding:0.25rem 0.75rem;border-radius:999px;font-size:0.78rem;font-weight:600;background:#fef3cd;color:#92600a;">Overweight:
+              25–29.9</span>
+            <span
+              style="padding:0.25rem 0.75rem;border-radius:999px;font-size:0.78rem;font-weight:600;background:#fee2e2;color:#991b1b;">Obese:
+              ≥30</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ MODAL: RISK ASSESSMENT ═══════════════ -->
+  <div class="modal-overlay" id="risk-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>🛡️ Health Risk Assessment</h3>
+        <button class="modal-close" onclick="closeModal('risk-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:0.87rem;color:var(--muted);margin-bottom:1.25rem;">Answer a few questions to assess your
+          risk for chronic conditions.</p>
+        <div class="form-group"><label class="form-label">Do you have a family history of diabetes?</label>
+          <select class="form-select" id="r1">
+            <option>No</option>
+            <option>Yes - one parent</option>
+            <option>Yes - both parents</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">How often do you exercise?</label>
+          <select class="form-select" id="r2">
+            <option>Daily</option>
+            <option>3–4 times/week</option>
+            <option>1–2 times/week</option>
+            <option>Rarely / Never</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Blood pressure reading</label>
+          <select class="form-select" id="r3">
+            <option>Normal (below 120/80)</option>
+            <option>Elevated (120–129)</option>
+            <option>High Stage 1 (130–139/80–89)</option>
+            <option>High Stage 2 (≥140/90)</option>
+            <option>Unknown</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Do you smoke?</label>
+          <select class="form-select" id="r4">
+            <option>Never</option>
+            <option>Former smoker</option>
+            <option>Occasional</option>
+            <option>Daily smoker</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Diet quality</label>
+          <select class="form-select" id="r5">
+            <option>Excellent (balanced, home cooked)</option>
+            <option>Good</option>
+            <option>Average (some junk food)</option>
+            <option>Poor (mostly processed/junk)</option>
+          </select>
+        </div>
+        <button class="btn-primary" style="width:100%;justify-content:center;" onclick="calcRisk()">Assess My Risk
+          🛡️</button>
+        <div id="riskResult" style="display:none;margin-top:1.25rem;"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ─── ANIMATED CANVAS BACKGROUND ───
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let W, H, particles = [];
+    function resizeCanvas() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+    window.addEventListener('resize', resizeCanvas); resizeCanvas();
+    const COLORS = ['rgba(18,163,116,0.15)', 'rgba(30,217,154,0.1)', 'rgba(10,110,80,0.08)'];
+    for (let i = 0; i < 18; i++) particles.push({
+      x: Math.random() * 1400, y: Math.random() * 900,
+      r: 40 + Math.random() * 120, vx: (Math.random() - 0.5) * 0.4, vy: (Math.random() - 0.5) * 0.3,
+      c: COLORS[Math.floor(Math.random() * COLORS.length)]
+    });
+    function drawCanvas() {
+      ctx.clearRect(0, 0, W, H);
+      // Draw connecting ECG-like line at top
+      ctx.beginPath(); ctx.strokeStyle = 'rgba(18,163,116,0.05)'; ctx.lineWidth = 2;
+      ctx.moveTo(0, H * 0.3);
+      for (let x = 0; x < W; x += 60) {
+        ctx.lineTo(x, H * 0.3 + Math.sin(x / 100 + Date.now() / 3000) * 30);
+      }
+      ctx.stroke();
+      // Draw particles (blobs)
+      particles.forEach(p => {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < -200) p.x = W + 200; if (p.x > W + 200) p.x = -200;
+        if (p.y < -200) p.y = H + 200; if (p.y > H + 200) p.y = -200;
+        const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
+        g.addColorStop(0, p.c); g.addColorStop(1, 'transparent');
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = g; ctx.fill();
+      });
+      // Small cross/plus health icons scattered
+      ctx.strokeStyle = 'rgba(18,163,116,0.06)'; ctx.lineWidth = 3;
+      [[100, 200], [500, 400], [900, 150], [1200, 350], [300, 600], [800, 500]].forEach(([px, py]) => {
+        const t = Date.now() / 2000;
+        ctx.save(); ctx.translate(px, py); ctx.rotate(Math.sin(t + px) * 0.2);
+        ctx.beginPath(); ctx.moveTo(-12, 0); ctx.lineTo(12, 0); ctx.moveTo(0, -12); ctx.lineTo(0, 12);
+        ctx.stroke(); ctx.restore();
+      });
+      requestAnimationFrame(drawCanvas);
+    }
+    drawCanvas();
+
+    // ─── SCROLL NAV ───
+    window.addEventListener('scroll', () => {
+      document.getElementById('main-nav').classList.toggle('scrolled', window.scrollY > 20);
+      document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+      const sections = ['home', 'tools', 'how', 'resources', 'about'];
+      for (let id of sections) {
+        const el = document.getElementById(id);
+        if (el && window.scrollY >= el.offsetTop - 100) {
+          const match = document.querySelector(`.nav-links a[href="#${id}"]`);
+          if (match) match.classList.add('active');
+        }
+      }
+    });
+
+    // ─── REVEAL OBSERVER ───
+    const revealObs = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in-view'); });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+
+    // ─── MODAL ───
+    function openModal(id) {
+      document.getElementById(id).classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    function resetSymptomChecker() {
+      document.querySelectorAll('#pdSymptomView .chip.selected').forEach(chip => chip.classList.remove('selected'));
+      const result = document.getElementById('predictorResult');
+      if (result) result.classList.remove('show');
+      ['pb1', 'pb2', 'pb3', 'pb4'].forEach(id => {
+        const bar = document.getElementById(id);
+        if (bar) bar.style.width = '0%';
+      });
+      ['pp1', 'pp2', 'pp3', 'pp4'].forEach(id => {
+        const pct = document.getElementById(id);
+        if (pct) pct.textContent = '';
+      });
+      document.querySelectorAll('#pdSymptomView select').forEach(select => select.selectedIndex = 0);
+      document.querySelectorAll('#pdSymptomView input, #pdSymptomView textarea').forEach(field => field.value = '');
+    }
+    function resetVoiceAssistant() {
+      stopVoice();
+      const typeInput = document.getElementById('voiceTypeInput');
+      const typeBox = document.getElementById('voiceTypeBox');
+      const response = document.getElementById('voiceResponse');
+      if (typeInput) typeInput.value = '';
+      if (typeBox) typeBox.style.display = 'none';
+      if (response) {
+        response.textContent = '';
+        response.innerHTML = '';
+      }
+    }
+    function closeModal(id) {
+      if (id === 'predictor-modal') {
+        resetSymptomChecker();
+        resetVoiceAssistant();
+        switchPdTab('symptoms');
+      }
+      document.getElementById(id).classList.remove('open');
+      document.body.style.overflow = '';
+    }
+    document.querySelectorAll('.modal-overlay').forEach(ov => {
+      ov.addEventListener('click', e => { if (e.target === ov) { closeModal(ov.id); stopVoice && stopVoice(); } });
+    });
+
+    // ─── SURVEY ───
+    let currentStep = 1;
+    function nextSurveyStep(step) {
+      document.querySelectorAll('[id^="surveyStep"]').forEach(el => el.style.display = 'none');
+      if (step <= 4) {
+        document.getElementById('surveyStep' + step).style.display = 'block';
+        document.getElementById('surveyProgress').style.width = (step * 25) + '%';
+        currentStep = step;
+      }
+    }
+    function submitSurvey() {
+      document.getElementById('surveyStep4').style.display = 'none';
+      document.getElementById('surveyResult').style.display = 'block';
+      document.getElementById('surveyProgress').style.width = '100%';
+    }
+
+    // ─── DIET ───
+    let selectedDiet = 'veg';
+    function selectDiet(el, type) {
+      document.querySelectorAll('.diet-opt').forEach(o => o.classList.remove('sel'));
+      el.classList.add('sel'); selectedDiet = type;
+    }
+    const MEAL_PLANS = {
+      veg: [
+        { t: '7:00 AM', d: 'Oatmeal with banana + green tea', c: '320 kcal' },
+        { t: '10:30 AM', d: 'Mixed fruit bowl + 5 almonds', c: '150 kcal' },
+        { t: '1:00 PM', d: 'Dal + 2 chapati + sabzi + salad', c: '480 kcal' },
+        { t: '4:30 PM', d: 'Paneer sandwich or roasted chana', c: '210 kcal' },
+        { t: '7:30 PM', d: 'Brown rice + rajma + raita', c: '450 kcal' },
+        { t: '9:30 PM', d: 'Warm milk with turmeric', c: '120 kcal' },
+      ],
+      nonveg: [
+        { t: '7:00 AM', d: 'Eggs (2 boiled) + whole wheat toast + tea', c: '340 kcal' },
+        { t: '10:30 AM', d: 'Fruit + Greek yogurt', c: '160 kcal' },
+        { t: '1:00 PM', d: 'Chicken curry + rice + salad', c: '550 kcal' },
+        { t: '4:30 PM', d: 'Boiled egg or tuna sandwich', c: '230 kcal' },
+        { t: '7:30 PM', d: 'Grilled fish + chapati + dal', c: '480 kcal' },
+        { t: '9:30 PM', d: 'Warm milk', c: '100 kcal' },
+      ],
+      vegan: [
+        { t: '7:00 AM', d: 'Smoothie bowl (banana, chia seeds, oats)', c: '310 kcal' },
+        { t: '10:30 AM', d: 'Apple + peanut butter', c: '180 kcal' },
+        { t: '1:00 PM', d: 'Chickpea curry + brown rice + salad', c: '490 kcal' },
+        { t: '4:30 PM', d: 'Roasted nuts + dates', c: '200 kcal' },
+        { t: '7:30 PM', d: 'Tofu stir-fry + quinoa', c: '420 kcal' },
+        { t: '9:30 PM', d: 'Chamomile tea + 2 walnuts', c: '80 kcal' },
+      ],
+      jain: [
+        { t: '7:00 AM', d: 'Poha with coconut + herbal tea', c: '280 kcal' },
+        { t: '10:30 AM', d: 'Dry fruits mix (no root vegetables)', c: '150 kcal' },
+        { t: '1:00 PM', d: 'Rajma + jowar roti + bottle gourd sabzi', c: '460 kcal' },
+        { t: '4:30 PM', d: 'Makhana roasted + coconut water', c: '170 kcal' },
+        { t: '7:30 PM', d: 'Khichdi + curd + papad', c: '380 kcal' },
+        { t: '9:30 PM', d: 'Warm milk with cardamom', c: '120 kcal' },
+      ]
+    };
+    function generateDiet() {
+      const plan = MEAL_PLANS[selectedDiet] || MEAL_PLANS['veg'];
+      const out = document.getElementById('mealPlanOutput');
+      out.innerHTML = plan.map(m => `<div class="meal-item"><span class="meal-time">${m.t}</span><span class="meal-desc">${m.d}</span><span class="meal-cal">${m.c}</span></div>`).join('');
+      document.getElementById('dietForm').style.display = 'none';
+      document.getElementById('dietResult').style.display = 'block';
+    }
+
+    // ─── FOOD SEARCH ───
+    const FOODS = [
+      { n: 'Apple (1 medium)', cal: 95, macros: ['Carbs: 25g', 'Fiber: 4g', 'Sugar: 19g', 'Protein: 0.5g'], micros: ['Vitamin C', 'Potassium', 'Polyphenols'] },
+      { n: 'Banana (1 medium)', cal: 105, macros: ['Carbs: 27g', 'Sugar: 14g', 'Fiber: 3g', 'Protein: 1.3g'], micros: ['Potassium', 'Vitamin B6', 'Magnesium'] },
+      { n: 'Orange (1 medium)', cal: 62, macros: ['Carbs: 15g', 'Fiber: 3g', 'Sugar: 12g', 'Protein: 1.2g'], micros: ['Vitamin C', 'Folate', 'Potassium'] },
+      { n: 'Mandarin Orange (1 cup)', cal: 104, macros: ['Carbs: 26g', 'Fiber: 3.5g', 'Protein: 1.6g'], micros: ['Vitamin C', 'Vitamin A', 'Folate'] },
+      { n: 'Grapefruit (1 medium)', cal: 82, macros: ['Carbs: 21g', 'Fiber: 3g', 'Protein: 1.6g'], micros: ['Vitamin C', 'Vitamin A', 'Potassium'] },
+      { n: 'Grapes (1 cup)', cal: 104, macros: ['Carbs: 27g', 'Fiber: 1.4g', 'Protein: 1.1g'], micros: ['Vitamin K', 'Copper', 'Polyphenols'] },
+      { n: 'Guava (1 cup)', cal: 112, macros: ['Carbs: 24g', 'Fiber: 9g', 'Protein: 4g'], micros: ['Vitamin C', 'Vitamin A', 'Folate'] },
+      { n: 'Papaya (1 cup)', cal: 55, macros: ['Carbs: 14g', 'Fiber: 2.5g', 'Protein: 0.9g'], micros: ['Vitamin A', 'Vitamin C', 'Folate'] },
+      { n: 'Mango (1 cup)', cal: 99, macros: ['Carbs: 25g', 'Fiber: 3g', 'Protein: 1.4g'], micros: ['Vitamin A', 'Vitamin C', 'Copper'] },
+      { n: 'Pomegranate (1 cup)', cal: 134, macros: ['Carbs: 30g', 'Fiber: 7g', 'Protein: 3g'], micros: ['Vitamin C', 'Vitamin K', 'Potassium'] },
+      { n: 'Watermelon (1 cup)', cal: 46, macros: ['Carbs: 11g', 'Fiber: 0.6g', 'Protein: 0.9g'], micros: ['Vitamin C', 'Vitamin A', 'Potassium'] },
+      { n: 'Cantaloupe (1 cup)', cal: 54, macros: ['Carbs: 13g', 'Fiber: 1.4g', 'Protein: 1.3g'], micros: ['Vitamin A', 'Vitamin C', 'Potassium'] },
+      { n: 'Honeydew Melon (1 cup)', cal: 61, macros: ['Carbs: 15g', 'Fiber: 1.4g', 'Protein: 0.9g'], micros: ['Vitamin C', 'Potassium', 'Folate'] },
+      { n: 'Casaba Melon (1 cup)', cal: 63, macros: ['Carbs: 15g', 'Fiber: 1.5g', 'Protein: 1.5g'], micros: ['Vitamin C', 'Potassium', 'Folate'] },
+      { n: 'Amla (100g)', cal: 44, macros: ['Carbs: 10g', 'Fiber: 4g', 'Protein: 0.9g'], micros: ['Vitamin C', 'Calcium', 'Antioxidants'] },
+      { n: 'Pear (1 medium)', cal: 101, macros: ['Carbs: 27g', 'Fiber: 6g', 'Protein: 0.6g'], micros: ['Vitamin C', 'Copper', 'Potassium'] },
+      { n: 'Peach (1 large)', cal: 68, macros: ['Carbs: 17g', 'Fiber: 2.5g', 'Protein: 1.3g'], micros: ['Vitamin C', 'Vitamin A', 'Potassium'] },
+      { n: 'Plum (3 medium)', cal: 91, macros: ['Carbs: 22g', 'Fiber: 2.9g', 'Protein: 1.4g'], micros: ['Vitamin C', 'Vitamin K', 'Potassium'] },
+      { n: 'Pineapple (1 cup)', cal: 82, macros: ['Carbs: 22g', 'Fiber: 2.3g', 'Protein: 0.9g'], micros: ['Vitamin C', 'Manganese', 'Bromelain'] },
+      { n: 'Kiwi (2 medium)', cal: 84, macros: ['Carbs: 20g', 'Fiber: 4g', 'Protein: 1.6g'], micros: ['Vitamin C', 'Vitamin K', 'Folate'] },
+      { n: 'Strawberries (1 cup)', cal: 49, macros: ['Carbs: 12g', 'Fiber: 3g', 'Protein: 1g'], micros: ['Vitamin C', 'Manganese', 'Folate'] },
+      { n: 'Blueberries (1 cup)', cal: 84, macros: ['Carbs: 21g', 'Fiber: 3.6g', 'Protein: 1.1g'], micros: ['Vitamin C', 'Vitamin K', 'Anthocyanins'] },
+      { n: 'Blackberries (1 cup)', cal: 62, macros: ['Carbs: 14g', 'Fiber: 7.6g', 'Protein: 2g'], micros: ['Vitamin C', 'Vitamin K', 'Manganese'] },
+      { n: 'Raspberries (1 cup)', cal: 64, macros: ['Carbs: 15g', 'Fiber: 8g', 'Protein: 1.5g'], micros: ['Vitamin C', 'Manganese', 'Fiber'] },
+      { n: 'Figs, fresh (5 figs)', cal: 95, macros: ['Carbs: 24g', 'Fiber: 3.7g', 'Protein: 1g'], micros: ['Calcium', 'Potassium', 'Copper'] },
+      { n: 'Dates (10 dates)', cal: 228, macros: ['Carbs: 61g', 'Fiber: 6g', 'Protein: 1.8g'], micros: ['Potassium', 'Magnesium', 'Copper'] },
+      { n: 'Raisins (1/2 cup)', cal: 217, macros: ['Carbs: 58g', 'Fiber: 2.7g', 'Protein: 2.5g'], micros: ['Iron', 'Potassium', 'Copper'] },
+      { n: 'Prunes (1/2 cup)', cal: 209, macros: ['Carbs: 56g', 'Fiber: 6g', 'Protein: 2g'], micros: ['Potassium', 'Vitamin K', 'Copper'] },
+      { n: 'Dried Apricots (1/2 cup)', cal: 157, macros: ['Carbs: 41g', 'Fiber: 4.7g', 'Protein: 2.2g'], micros: ['Vitamin A', 'Iron', 'Potassium'] },
+      { n: 'Kumquats (10 fruits)', cal: 71, macros: ['Carbs: 16g', 'Fiber: 6.5g', 'Protein: 1.9g'], micros: ['Vitamin C', 'Calcium', 'Vitamin A'] },
+      { n: 'Star Fruit / Carambola (1 cup)', cal: 41, macros: ['Carbs: 9g', 'Fiber: 3.7g', 'Protein: 1.4g'], micros: ['Vitamin C', 'Copper', 'Potassium'] },
+      { n: 'Jackfruit (1 cup)', cal: 157, macros: ['Carbs: 38g', 'Fiber: 2.5g', 'Protein: 2.8g'], micros: ['Vitamin C', 'Potassium', 'Vitamin B6'] },
+      { n: 'Tomato (1 medium)', cal: 22, macros: ['Carbs: 5g', 'Fiber: 1.5g', 'Protein: 1.1g'], micros: ['Vitamin C', 'Potassium', 'Lycopene'] },
+      { n: 'Carrot (1 cup)', cal: 52, macros: ['Carbs: 12g', 'Fiber: 3.6g', 'Protein: 1.2g'], micros: ['Vitamin A', 'Vitamin K', 'Potassium'] },
+      { n: 'Spinach (1 cup)', cal: 7, macros: ['Carbs: 1g', 'Fiber: 0.7g', 'Protein: 0.9g'], micros: ['Iron', 'Folate', 'Vitamin K'] },
+      { n: 'Broccoli (1 cup)', cal: 31, macros: ['Carbs: 6g', 'Fiber: 2.4g', 'Protein: 2.5g'], micros: ['Vitamin C', 'Vitamin K', 'Folate'] },
+      { n: 'Cauliflower (1 cup)', cal: 27, macros: ['Carbs: 5g', 'Fiber: 2g', 'Protein: 2g'], micros: ['Vitamin C', 'Folate', 'Choline'] },
+      { n: 'Sweet Potato (100g)', cal: 86, macros: ['Carbs: 20g', 'Fiber: 3g', 'Protein: 1.6g'], micros: ['Vitamin A', 'Potassium', 'Manganese'] },
+      { n: 'Potato (1 medium)', cal: 161, macros: ['Carbs: 37g', 'Fiber: 4g', 'Protein: 4.3g'], micros: ['Potassium', 'Vitamin C', 'Vitamin B6'] },
+      { n: 'Beetroot (1 cup)', cal: 59, macros: ['Carbs: 13g', 'Fiber: 3.8g', 'Protein: 2.2g'], micros: ['Folate', 'Manganese', 'Potassium'] },
+      { n: 'White Rice (1 cup cooked)', cal: 206, macros: ['Carbs: 45g', 'Protein: 4g', 'Fat: 0.5g'], micros: ['Manganese', 'Selenium', 'Low fiber'] },
+      { n: 'Brown Rice (1 cup cooked)', cal: 216, macros: ['Carbs: 45g', 'Fiber: 3.5g', 'Protein: 5g'], micros: ['Magnesium', 'Manganese', 'Selenium'] },
+      { n: 'Oats (100g dry)', cal: 389, macros: ['Carbs: 66g', 'Fiber: 10g', 'Protein: 17g'], micros: ['Manganese', 'Magnesium', 'Iron'] },
+      { n: 'Quinoa (1 cup cooked)', cal: 222, macros: ['Carbs: 39g', 'Fiber: 5g', 'Protein: 8g'], micros: ['Magnesium', 'Iron', 'Folate'] },
+      { n: 'Whole Wheat Bread (1 slice)', cal: 69, macros: ['Carbs: 12g', 'Protein: 4g', 'Fiber: 2g'], micros: ['B vitamins', 'Iron', 'Selenium'] },
+      { n: 'Chapati (1 medium)', cal: 104, macros: ['Carbs: 18g', 'Protein: 3g', 'Fiber: 1.5g'], micros: ['Iron', 'B vitamins', 'Magnesium'] },
+      { n: 'Ragi (100g)', cal: 336, macros: ['Carbs: 72g', 'Fiber: 3.6g', 'Protein: 7.3g'], micros: ['Calcium', 'Iron', 'Potassium'] },
+      { n: 'Poha (1 cup cooked)', cal: 180, macros: ['Carbs: 38g', 'Protein: 4g', 'Fat: 1.5g'], micros: ['Iron', 'B vitamins', 'Sodium varies'] },
+      { n: 'Dal (1 cup cooked)', cal: 230, macros: ['Protein: 18g', 'Carbs: 40g', 'Fiber: 16g'], micros: ['Folate', 'Iron', 'Potassium'] },
+      { n: 'Chickpeas (1 cup cooked)', cal: 269, macros: ['Protein: 15g', 'Carbs: 45g', 'Fiber: 12g'], micros: ['Folate', 'Iron', 'Manganese'] },
+      { n: 'Rajma / Kidney Beans (1 cup cooked)', cal: 225, macros: ['Protein: 15g', 'Carbs: 40g', 'Fiber: 11g'], micros: ['Iron', 'Folate', 'Magnesium'] },
+      { n: 'Black Beans (1 cup cooked)', cal: 227, macros: ['Protein: 15g', 'Carbs: 41g', 'Fiber: 15g'], micros: ['Magnesium', 'Iron', 'Folate'] },
+      { n: 'Soybeans (1 cup cooked)', cal: 298, macros: ['Protein: 29g', 'Carbs: 17g', 'Fat: 15g'], micros: ['Iron', 'Calcium', 'Potassium'] },
+      { n: 'Tofu (100g)', cal: 144, macros: ['Protein: 15g', 'Fat: 8g', 'Carbs: 3g'], micros: ['Calcium', 'Iron', 'Manganese'] },
+      { n: 'Paneer (100g)', cal: 265, macros: ['Protein: 18g', 'Fat: 21g', 'Carbs: 1.2g'], micros: ['Calcium', 'Phosphorus', 'Vitamin B12'] },
+      { n: 'Milk (1 glass 250ml)', cal: 150, macros: ['Protein: 8g', 'Fat: 8g', 'Carbs: 12g'], micros: ['Calcium', 'Vitamin B12', 'Riboflavin'] },
+      { n: 'Curd / Yogurt (1 cup)', cal: 149, macros: ['Protein: 8.5g', 'Fat: 8g', 'Carbs: 11g'], micros: ['Calcium', 'Phosphorus', 'Vitamin B12'] },
+      { n: 'Cheese (28g)', cal: 113, macros: ['Protein: 7g', 'Fat: 9g', 'Carbs: 1g'], micros: ['Calcium', 'Vitamin A', 'Phosphorus'] },
+      { n: 'Egg (1 whole)', cal: 78, macros: ['Protein: 6g', 'Fat: 5g', 'Carbs: 0.6g'], micros: ['Choline', 'Vitamin B12', 'Selenium'] },
+      { n: 'Chicken Breast (100g)', cal: 165, macros: ['Protein: 31g', 'Fat: 3.6g', 'Carbs: 0g'], micros: ['Niacin', 'Vitamin B6', 'Phosphorus'] },
+      { n: 'Mutton (100g)', cal: 258, macros: ['Protein: 25g', 'Fat: 17g', 'Carbs: 0g'], micros: ['Iron', 'Zinc', 'Vitamin B12'] },
+      { n: 'Fish / Salmon (100g)', cal: 208, macros: ['Protein: 20g', 'Fat: 13g', 'Carbs: 0g'], micros: ['Vitamin D', 'Selenium', 'Vitamin B12'] },
+      { n: 'Sardines (100g)', cal: 208, macros: ['Protein: 25g', 'Fat: 11g', 'Carbs: 0g'], micros: ['Calcium', 'Vitamin D', 'Omega-3'] },
+      { n: 'Tuna (100g)', cal: 132, macros: ['Protein: 29g', 'Fat: 1g', 'Carbs: 0g'], micros: ['Selenium', 'Vitamin B12', 'Niacin'] },
+      { n: 'Almonds (10 pieces)', cal: 70, macros: ['Fat: 6g', 'Protein: 2.5g', 'Fiber: 1.4g'], micros: ['Vitamin E', 'Magnesium', 'Manganese'] },
+      { n: 'Walnuts (28g)', cal: 185, macros: ['Fat: 18g', 'Protein: 4g', 'Fiber: 2g'], micros: ['Copper', 'Manganese', 'Magnesium'] },
+      { n: 'Cashews (28g)', cal: 157, macros: ['Fat: 12g', 'Protein: 5g', 'Carbs: 9g'], micros: ['Copper', 'Magnesium', 'Zinc'] },
+      { n: 'Peanuts (28g)', cal: 161, macros: ['Fat: 14g', 'Protein: 7g', 'Carbs: 5g'], micros: ['Niacin', 'Folate', 'Vitamin E'] },
+      { n: 'Pumpkin Seeds (28g)', cal: 151, macros: ['Fat: 13g', 'Protein: 7g', 'Carbs: 5g'], micros: ['Zinc', 'Magnesium', 'Iron'] },
+      { n: 'Sunflower Seeds (28g)', cal: 164, macros: ['Fat: 14g', 'Protein: 5.5g', 'Carbs: 6g'], micros: ['Vitamin E', 'Selenium', 'Copper'] },
+      { n: 'Sesame Seeds (1 tbsp)', cal: 52, macros: ['Fat: 4.5g', 'Protein: 1.6g', 'Carbs: 2g'], micros: ['Calcium', 'Copper', 'Iron'] },
+      { n: 'Coconut Water (1 cup)', cal: 46, macros: ['Carbs: 9g', 'Sugar: 6g', 'Protein: 1.7g'], micros: ['Potassium', 'Sodium', 'Magnesium'] },
+      { n: 'Avocado (100g)', cal: 160, macros: ['Fat: 15g', 'Fiber: 7g', 'Carbs: 9g'], micros: ['Potassium', 'Folate', 'Vitamin E'] }
+    ];
+    const MICRONUTRIENTS = [
+      { name: 'Vitamin A', type: 'Vitamin', role: 'Supports vision, immunity, skin, and growth.', sources: 'Carrot, sweet potato, spinach, mango, egg yolk, liver.', deficiency: 'Night blindness, dry eyes, frequent infections.' },
+      { name: 'Vitamin B1 (Thiamine)', type: 'Vitamin', role: 'Helps convert food into energy and supports nerves.', sources: 'Whole grains, legumes, seeds, pork, fortified cereals.', deficiency: 'Fatigue, irritability, nerve problems, weakness.' },
+      { name: 'Vitamin B2 (Riboflavin)', type: 'Vitamin', role: 'Important for energy production and healthy skin.', sources: 'Milk, yogurt, eggs, almonds, mushrooms, fortified grains.', deficiency: 'Cracked lips, sore tongue, skin irritation.' },
+      { name: 'Vitamin B3 (Niacin)', type: 'Vitamin', role: 'Supports metabolism, skin, and nervous system function.', sources: 'Chicken, fish, peanuts, brown rice, mushrooms.', deficiency: 'Dermatitis, diarrhea, confusion, low energy.' },
+      { name: 'Vitamin B5 (Pantothenic Acid)', type: 'Vitamin', role: 'Needed for hormone synthesis and energy release.', sources: 'Chicken, avocado, mushrooms, lentils, milk.', deficiency: 'Rare, but may cause numbness, fatigue, irritability.' },
+      { name: 'Vitamin B6', type: 'Vitamin', role: 'Helps make neurotransmitters and hemoglobin.', sources: 'Banana, chickpeas, potato, fish, poultry.', deficiency: 'Anemia, low mood, mouth sores, nerve symptoms.' },
+      { name: 'Vitamin B7 (Biotin)', type: 'Vitamin', role: 'Supports hair, skin, nails, and fat metabolism.', sources: 'Eggs, nuts, seeds, legumes, sweet potato.', deficiency: 'Hair thinning, rash, brittle nails, tiredness.' },
+      { name: 'Vitamin B9 (Folate)', type: 'Vitamin', role: 'Critical for DNA synthesis and red blood cells.', sources: 'Leafy greens, beans, citrus, peanuts, fortified grains.', deficiency: 'Megaloblastic anemia, fatigue, poor fetal development.' },
+      { name: 'Vitamin B12', type: 'Vitamin', role: 'Supports nerves, brain health, and red blood cell formation.', sources: 'Milk, eggs, fish, meat, fortified plant foods.', deficiency: 'Numbness, anemia, memory issues, weakness.' },
+      { name: 'Vitamin C', type: 'Vitamin', role: 'Important for immunity, collagen, iron absorption, and healing.', sources: 'Orange, amla, guava, lemon, capsicum, tomato.', deficiency: 'Bleeding gums, poor wound healing, frequent illness.' },
+      { name: 'Vitamin D', type: 'Vitamin', role: 'Helps absorb calcium and supports bones, muscles, and immunity.', sources: 'Sunlight, fortified milk, egg yolk, fatty fish.', deficiency: 'Bone pain, weak muscles, low immunity.' },
+      { name: 'Vitamin E', type: 'Vitamin', role: 'Acts as an antioxidant and protects cells from damage.', sources: 'Almonds, sunflower seeds, wheat germ, spinach, oils.', deficiency: 'Rare, may cause nerve and muscle issues.' },
+      { name: 'Vitamin K', type: 'Vitamin', role: 'Helps blood clotting and bone metabolism.', sources: 'Spinach, kale, broccoli, cabbage, fermented foods.', deficiency: 'Easy bruising, bleeding, delayed clotting.' },
+      { name: 'Choline', type: 'Vitamin-like', role: 'Supports liver function, nerves, and brain development.', sources: 'Eggs, fish, soy, chicken, peanuts, dairy.', deficiency: 'Fatty liver, poor memory, muscle damage.' },
+      { name: 'Calcium', type: 'Mineral', role: 'Essential for bones, teeth, muscles, and nerve signaling.', sources: 'Milk, curd, paneer, ragi, sesame, tofu.', deficiency: 'Weak bones, cramps, tingling, fractures.' },
+      { name: 'Phosphorus', type: 'Mineral', role: 'Works with calcium in bones and helps energy storage.', sources: 'Dairy, pulses, fish, chicken, nuts, seeds.', deficiency: 'Weakness, bone pain, poor appetite.' },
+      { name: 'Magnesium', type: 'Mineral', role: 'Supports muscles, nerves, blood sugar balance, and sleep.', sources: 'Pumpkin seeds, spinach, dal, nuts, dark chocolate.', deficiency: 'Cramps, twitching, fatigue, poor sleep.' },
+      { name: 'Potassium', type: 'Electrolyte', role: 'Supports heart rhythm, nerves, and fluid balance.', sources: 'Banana, coconut water, potato, dal, spinach, beans.', deficiency: 'Weakness, constipation, cramps, irregular heartbeat.' },
+      { name: 'Sodium', type: 'Electrolyte', role: 'Needed for fluid balance, blood pressure, and nerve signaling.', sources: 'Salt, pickles, soups, dairy, bread.', deficiency: 'Headache, confusion, nausea, muscle cramps.' },
+      { name: 'Chloride', type: 'Electrolyte', role: 'Helps maintain fluid balance and stomach acid production.', sources: 'Table salt, tomatoes, olives, seaweed.', deficiency: 'Weakness, dehydration, digestive issues.' },
+      { name: 'Sulfur', type: 'Mineral', role: 'Part of important amino acids and connective tissue.', sources: 'Eggs, garlic, onion, legumes, cruciferous vegetables.', deficiency: 'Rare, but can affect hair, nails, and joints.' },
+      { name: 'Iron', type: 'Mineral', role: 'Carries oxygen in blood and supports energy levels.', sources: 'Leafy greens, jaggery, beans, red meat, liver, dates.', deficiency: 'Anemia, fatigue, pale skin, breathlessness.' },
+      { name: 'Zinc', type: 'Mineral', role: 'Supports immunity, wound healing, skin, and taste.', sources: 'Pumpkin seeds, beans, dairy, eggs, meat, seafood.', deficiency: 'Hair fall, poor healing, low immunity, reduced appetite.' },
+      { name: 'Copper', type: 'Trace Mineral', role: 'Helps iron metabolism, immunity, and connective tissue.', sources: 'Nuts, seeds, cocoa, shellfish, whole grains.', deficiency: 'Anemia, low immunity, nerve issues.' },
+      { name: 'Manganese', type: 'Trace Mineral', role: 'Supports antioxidant enzymes and bone formation.', sources: 'Whole grains, tea, nuts, legumes, leafy greens.', deficiency: 'Rare, may affect growth and bone health.' },
+      { name: 'Selenium', type: 'Trace Mineral', role: 'Important for thyroid function and antioxidant defense.', sources: 'Eggs, fish, sunflower seeds, whole grains.', deficiency: 'Weak immunity, thyroid dysfunction, fatigue.' },
+      { name: 'Iodine', type: 'Trace Mineral', role: 'Required for thyroid hormones and metabolic balance.', sources: 'Iodized salt, dairy, seafood, eggs.', deficiency: 'Goiter, low energy, weight gain, poor concentration.' },
+      { name: 'Chromium', type: 'Trace Mineral', role: 'Helps insulin work and supports blood sugar metabolism.', sources: 'Whole grains, broccoli, meat, nuts, beans.', deficiency: 'Poor glucose control, fatigue.' },
+      { name: 'Molybdenum', type: 'Trace Mineral', role: 'Needed for enzymes that process sulfur compounds.', sources: 'Beans, lentils, grains, nuts.', deficiency: 'Very rare, may affect nerve function.' },
+      { name: 'Fluoride', type: 'Trace Mineral', role: 'Helps strengthen teeth and may support bones.', sources: 'Fluoridated water, tea, seafood.', deficiency: 'Higher risk of dental cavities.' }
+    ];
+    function searchFood(q) {
+      const r = document.getElementById('foodResults');
+      if (!q) { r.innerHTML = FOODS.map(foodHtml).join(''); return; }
+      const query = q.toLowerCase();
+      const filtered = FOODS.filter(f =>
+        f.n.toLowerCase().includes(query) ||
+        f.macros.some(m => m.toLowerCase().includes(query)) ||
+        (f.micros || []).some(m => m.toLowerCase().includes(query))
+      );
+      r.innerHTML = filtered.length ? filtered.map(foodHtml).join('') : '<p style="text-align:center;color:var(--muted);padding:2rem;">No results found. Try another food name.</p>';
+    }
+    function foodHtml(f) {
+      const microBlock = (f.micros && f.micros.length)
+        ? `<div class="food-macros">${f.micros.map(m => `<span class="macro">${m}</span>`).join('')}</div>`
+        : '';
+      return `<div class="food-item"><div><div class="food-name">${f.n}</div><div class="food-macros">${f.macros.map(m => `<span class="macro">${m}</span>`).join('')}</div>${microBlock}</div><div class="food-cal">${f.cal}<br><span style="font-size:0.75rem;color:var(--muted)">kcal</span></div></div>`;
+    }
+    function microHtml(item) {
+      return `<div class="micro-card">
+        <div class="micro-top">
+          <div class="micro-name">${item.name}</div>
+          <span class="micro-type">${item.type}</span>
+        </div>
+        <p><span class="micro-label">Role:</span> ${item.role}</p>
+        <p><span class="micro-label">Sources:</span> ${item.sources}</p>
+        <p><span class="micro-label">Low intake signs:</span> ${item.deficiency}</p>
+      </div>`;
+    }
+    function renderMicronutrients() {
+      const grid = document.getElementById('micronutrientGrid');
+      if (!grid) return;
+      grid.innerHTML = MICRONUTRIENTS.map(microHtml).join('');
+    }
+
+    // ─── PREDICTOR ───
+    function runPredictor() {
+      const selected = document.querySelectorAll('#predictor-modal .chip.selected');
+      const count = selected.length;
+      let p1 = 75, p2 = 50, p3 = 35, p4 = 20;
+      if (count >= 4) { p1 = 85; p2 = 65; p3 = 40; p4 = 35; }
+      if (count >= 7) { p1 = 90; p2 = 75; p3 = 50; p4 = 55; }
+      document.getElementById('predictorResult').classList.add('show');
+      [['pb1', 'pp1', p1], ['pb2', 'pp2', p2], ['pb3', 'pp3', p3], ['pb4', 'pp4', p4]].forEach(([b, p, v]) => {
+        setTimeout(() => {
+          document.getElementById(b).style.width = v + '%';
+          document.getElementById(p).textContent = v + '%';
+        }, 100);
+      });
+    }
+
+    // ─── BMI ───
+    function calcBMI() {
+      const h = parseFloat(document.getElementById('bmiHeight').value) / 100;
+      const w = parseFloat(document.getElementById('bmiWeight').value);
+      if (!h || !w || h <= 0 || w <= 0) { alert('Please enter valid height and weight.'); return; }
+      const bmi = (w / (h * h)).toFixed(1);
+      let cat, advice, color;
+      if (bmi < 18.5) { cat = 'Underweight'; advice = 'Consider increasing calorie intake with nutrient-rich foods. Consult a nutritionist.'; color = '#1e40af'; }
+      else if (bmi < 25) { cat = '✅ Normal Weight'; advice = 'Great job! Maintain your current diet and exercise routine. Keep up the healthy lifestyle!'; color = '#0a6e50'; }
+      else if (bmi < 30) { cat = 'Overweight'; advice = 'Consider reducing processed foods and increasing physical activity. Aim for 30 min exercise daily.'; color = '#92600a'; }
+      else { cat = 'Obese'; advice = 'Please consult a doctor. Focus on diet changes, regular exercise, and possible medical guidance.'; color = '#991b1b'; }
+      document.getElementById('bmiValue').textContent = bmi;
+      document.getElementById('bmiCategory').innerHTML = `<span style="color:${color}">${cat}</span>`;
+      document.getElementById('bmiAdvice').textContent = advice;
+      document.getElementById('bmiResult').style.display = 'block';
+    }
+
+    // ─── RISK ASSESSMENT ───
+    function calcRisk() {
+      let score = 0;
+      const r1 = document.getElementById('r1').value;
+      const r2 = document.getElementById('r2').value;
+      const r3 = document.getElementById('r3').value;
+      const r4 = document.getElementById('r4').value;
+      const r5 = document.getElementById('r5').value;
+      if (r1.includes('one parent')) score += 2; if (r1.includes('both')) score += 4;
+      if (r2.includes('Rarely')) score += 3; else if (r2.includes('1–2')) score += 1;
+      if (r3.includes('Stage 2')) score += 4; else if (r3.includes('Stage 1')) score += 2; else if (r3.includes('Elevated')) score += 1;
+      if (r4.includes('Daily')) score += 4; else if (r4.includes('Occasional')) score += 2; else if (r4.includes('Former')) score += 1;
+      if (r5.includes('Poor')) score += 3; else if (r5.includes('Average')) score += 1;
+      let level, color, msg;
+      if (score <= 3) { level = 'Low Risk 🟢'; color = 'var(--g1)'; msg = 'Your lifestyle looks healthy! Keep up the great habits — exercise regularly, eat well, and get annual checkups.'; }
+      else if (score <= 7) { level = 'Moderate Risk 🟡'; color = '#92600a'; msg = 'You have some risk factors. Consider improving diet, increasing exercise frequency, and monitoring blood pressure.'; }
+      else { level = 'High Risk 🔴'; color = '#991b1b'; msg = 'Multiple risk factors detected. We strongly recommend consulting a doctor and making immediate lifestyle changes.'; }
+      document.getElementById('riskResult').style.display = 'block';
+      document.getElementById('riskResult').innerHTML = `
+    <div style="background:var(--g4);border-radius:1rem;padding:1.25rem;text-align:center;">
+      <div style="font-family:var(--font-head);font-size:1.5rem;color:${color};margin-bottom:0.5rem;">${level}</div>
+      <p style="font-size:0.9rem;color:var(--dark);">${msg}</p>
+      <div style="margin-top:1rem;font-size:0.82rem;font-weight:700;color:var(--muted);">Risk Score: ${score}/18</div>
+    </div>`;
+    }
+
+    // ─── PREDICTOR TAB SWITCHER ───
+    function switchPdTab(tab) {
+      const sympView = document.getElementById('pdSymptomView');
+      const voiceView = document.getElementById('pdVoiceView');
+      const tabSymp = document.getElementById('pdTabSymptoms');
+      const tabVoice = document.getElementById('pdTabVoice');
+      const title = document.getElementById('predictorModalTitle');
+
+      if (tab === 'symptoms') {
+        sympView.style.display = 'block';
+        voiceView.style.display = 'none';
+        tabSymp.style.cssText = 'flex:1;padding:0.65rem 0;border:none;background:var(--g4);cursor:pointer;font-family:var(--font-body);font-size:0.85rem;font-weight:600;color:var(--g1);border-bottom:2.5px solid var(--g1);display:flex;align-items:center;justify-content:center;gap:0.4rem;';
+        tabVoice.style.cssText = 'flex:1;padding:0.65rem 0;border:none;background:none;cursor:pointer;font-family:var(--font-body);font-size:0.85rem;font-weight:600;color:var(--muted);border-bottom:2.5px solid transparent;display:flex;align-items:center;justify-content:center;gap:0.4rem;transition:color 0.2s,border-color 0.2s;';
+        title.textContent = '🧬 Disease Predictor';
+        stopVoice();
+      } else {
+        resetSymptomChecker();
+        sympView.style.display = 'none';
+        voiceView.style.display = 'block';
+        tabVoice.style.cssText = 'flex:1;padding:0.65rem 0;border:none;background:var(--g4);cursor:pointer;font-family:var(--font-body);font-size:0.85rem;font-weight:600;color:var(--g1);border-bottom:2.5px solid var(--g1);display:flex;align-items:center;justify-content:center;gap:0.4rem;';
+        tabSymp.style.cssText = 'flex:1;padding:0.65rem 0;border:none;background:none;cursor:pointer;font-family:var(--font-body);font-size:0.85rem;font-weight:600;color:var(--muted);border-bottom:2.5px solid transparent;display:flex;align-items:center;justify-content:center;gap:0.4rem;transition:color 0.2s,border-color 0.2s;';
+        title.textContent = '🎙️ Voice input for prediction ';
+      }
+    }
+
+    // ─── VOICE ASSISTANT (standalone modal) ───
+    let voiceListening = false, recognition = null;
+    function isAutoVoiceLanguageSelected() {
+      return (document.getElementById('voiceLanguage')?.value || 'auto') === 'auto';
+    }
+    function getSelectedVoiceLanguage() {
+      const selected = document.getElementById('voiceLanguage')?.value || 'auto';
+      if (selected !== 'auto') return selected;
+
+      const browserLangs = [navigator.language, ...(navigator.languages || [])]
+        .filter(Boolean)
+        .map(lang => lang.toLowerCase());
+
+      if (browserLangs.some(lang => lang.startsWith('mr'))) return 'mr-IN';
+      if (browserLangs.some(lang => lang.startsWith('hi'))) return 'hi-IN';
+      if (browserLangs.some(lang => lang.startsWith('en'))) return 'en-IN';
+      return 'en-IN';
+    }
+    function getLanguageLabel(langCode) {
+      const labels = {
+        'en-IN': 'English',
+        'hi-IN': 'Hindi',
+        'mr-IN': 'Marathi',
+        en: 'English',
+        hi: 'Hindi',
+        mr: 'Marathi'
+      };
+      return labels[langCode] || 'Auto';
+    }
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+    function toggleVoice() {
+      if (!voiceListening) startVoice(); else stopVoice();
+    }
+    function startVoice() {
+      const recognitionLang = getSelectedVoiceLanguage();
+      voiceListening = true;
+      document.getElementById('voiceBtn').classList.add('listening');
+      document.getElementById('voiceStatus').textContent = isAutoVoiceLanguageSelected()
+        ? 'Listening in Auto mode... speak now'
+        : 'Listening in ' + getLanguageLabel(recognitionLang) + '... speak now';
+      document.getElementById('voiceWave').classList.add('active');
+      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SR();
+        recognition.lang = recognitionLang;
+        recognition.interimResults = false;
+        recognition.onresult = e => {
+          const text = e.results[0][0].transcript;
+          document.getElementById('voiceTranscript').textContent = '"' + text + '"';
+          processVoiceText(text);
+        };
+        recognition.onerror = () => { stopVoice(); document.getElementById('voiceStatus').textContent = 'Error — please try typing instead'; };
+        recognition.start();
+      } else {
+        setTimeout(() => {
+          stopVoice();
+          document.getElementById('voiceStatus').textContent = 'Browser does not support voice — use text input below';
+          document.getElementById('voiceTypeBox').style.display = 'block';
+        }, 1500);
+      }
+    }
+    function stopVoice() {
+      voiceListening = false;
+      if (recognition) recognition.stop();
+      document.getElementById('voiceBtn').classList.remove('listening');
+      document.getElementById('voiceStatus').textContent = 'Tap to speak';
+      document.getElementById('voiceWave').classList.remove('active');
+      document.getElementById('voiceTranscript').textContent = 'Your spoken text will appear here...';
+      document.getElementById('voiceResponseBox').classList.remove('show');
+    }
+    async function processVoiceText(text) {
+      stopVoice();
+      document.getElementById('voiceTranscript').textContent = '"' + text + '"';
+      document.getElementById('voiceResponse').textContent = "Analyzing symptoms with AI...";
+      document.getElementById('voiceResponseBox').classList.add('show');
+
+      let reply = "";
+      let responseLang = 'en-IN';
+      try {
+        const res = await fetch('http://127.0.0.1:8000/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: text })
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          reply = err.detail || "Sorry, I couldn't understand those symptoms. Please try again.";
+        } else {
+          const data = await res.json();
+          responseLang = data.detected_language === 'mr' ? 'mr-IN' : data.detected_language === 'hi' ? 'hi-IN' : 'en-IN';
+          const preds = data.predictions;
+          if (preds && preds.length > 0) {
+            reply = "Based on your symptoms, the top prediction is " + preds[0].disease + ". ";
+            if (preds.length > 1) {
+              reply += "Other possibilities include " + preds[1].disease + ". ";
+            }
+            reply += "Please consult a doctor for a proper diagnosis.";
+
+            // Format for display
+            const languageLabel = getLanguageLabel(data.detected_language);
+            let htmlStr = `<strong>Language:</strong> ${languageLabel}<br><br><strong>Top Predictions:</strong><br>`;
+            preds.forEach(p => {
+              htmlStr += `• ${p.disease}<br>`;
+            });
+            // Add Gemini advice
+            if (data.advice_available && data.advice) {
+              htmlStr += `<br><strong>AI Health Advice:</strong><br><div style="background:var(--g4);padding:0.75rem;border-radius:8px;margin-top:0.5rem;font-size:0.87rem;line-height:1.6;white-space:pre-wrap;">${escapeHtml(data.advice)}</div>`;
+            } else {
+              htmlStr += `<br><strong>Health Advice:</strong><br><div style="background:var(--g4);padding:0.75rem;border-radius:8px;margin-top:0.5rem;font-size:0.87rem;line-height:1.6;white-space:pre-wrap;">${escapeHtml(data.advice || 'Advice is unavailable right now.')}</div>`;
+              if (data.advice_error) {
+                htmlStr += `<div style="margin-top:0.6rem;font-size:0.8rem;color:var(--muted);">Gemini status: ${escapeHtml(data.advice_error)}</div>`;
+              }
+            }
+            document.getElementById('voiceResponse').innerHTML = htmlStr;
+          } else {
+            reply = "I couldn't predict a disease based on those symptoms.";
+          }
+        }
+      } catch (e) {
+        console.error(e);
+        reply = "Sorry, the AI prediction server is currently down. Please ensure the backend is running.";
+      }
+
+      if (!document.getElementById('voiceResponse').innerHTML.includes('<strong>')) {
+        document.getElementById('voiceResponse').textContent = reply;
+      }
+
+      if ('speechSynthesis' in window) {
+        const utter = new SpeechSynthesisUtterance(reply);
+        utter.lang = responseLang; utter.rate = 0.95;
+        window.speechSynthesis.speak(utter);
+      }
+    }
+    function typeQuery() {
+      document.getElementById('voiceTypeBox').style.display = 'block';
+    }
+
+    searchFood('');
+    renderMicronutrients();
+
+  </script>
+</body>
+
+</html>

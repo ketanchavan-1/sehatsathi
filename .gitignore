@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+.ruff_cache/
+*.pyc
+backend.log
+backend.err.log
+dataset (version 1).backup.xlsx
