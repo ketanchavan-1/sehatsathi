@@ -65,6 +65,11 @@ class DietPlanRequest(BaseModel):
 class FoodImageRequest(BaseModel):
     image_data: str
 
+
+class SurveyResponseRequest(BaseModel):
+    token: str
+    responses: dict
+
 # Global state for ML
 model = None
 mlb = None
@@ -104,6 +109,15 @@ def init_db():
             calories TEXT NOT NULL,
             meals TEXT NOT NULL,
             plan_json TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS survey_responses (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            responses_json TEXT NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users(id)
         )
@@ -272,7 +286,7 @@ def save_diet_plan(req: DietPlanRequest):
         raise HTTPException(status_code=401, detail="Invalid session.")
 
     conn = get_db_connection()
-    conn.execute(
+    cursor = conn.execute(
         """
         INSERT INTO diet_plans (user_id, diet_type, goal, calories, meals, plan_json)
         VALUES (?, ?, ?, ?, ?, ?)
@@ -287,8 +301,27 @@ def save_diet_plan(req: DietPlanRequest):
         ),
     )
     conn.commit()
+    saved_plan = conn.execute(
+        """
+        SELECT id, diet_type, goal, calories, meals, plan_json, created_at
+        FROM diet_plans
+        WHERE id = ?
+        """,
+        (cursor.lastrowid,),
+    ).fetchone()
     conn.close()
-    return {"message": "Diet plan saved successfully."}
+    return {
+        "message": "Diet plan saved successfully.",
+        "plan": {
+            "id": saved_plan["id"],
+            "diet_type": saved_plan["diet_type"],
+            "goal": saved_plan["goal"],
+            "calories": saved_plan["calories"],
+            "meals": saved_plan["meals"],
+            "plan": json.loads(saved_plan["plan_json"]),
+            "created_at": saved_plan["created_at"],
+        },
+    }
 
 
 @app.get("/diet-plans")
@@ -321,6 +354,73 @@ def get_saved_diet_plans(token: str):
                 "created_at": plan["created_at"],
             }
             for plan in plans
+        ]
+    }
+
+
+@app.post("/survey-responses")
+def save_survey_response(req: SurveyResponseRequest):
+    user = get_user_by_token(req.token)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid session.")
+
+    conn = get_db_connection()
+    cursor = conn.execute(
+        """
+        INSERT INTO survey_responses (user_id, responses_json)
+        VALUES (?, ?)
+        """,
+        (
+            user["id"],
+            json.dumps(req.responses),
+        ),
+    )
+    conn.commit()
+    saved_response = conn.execute(
+        """
+        SELECT id, responses_json, created_at
+        FROM survey_responses
+        WHERE id = ?
+        """,
+        (cursor.lastrowid,),
+    ).fetchone()
+    conn.close()
+    return {
+        "message": "Survey response saved successfully.",
+        "response": {
+            "id": saved_response["id"],
+            "responses": json.loads(saved_response["responses_json"]),
+            "created_at": saved_response["created_at"],
+        },
+    }
+
+
+@app.get("/survey-responses")
+def get_survey_responses(token: str):
+    user = get_user_by_token(token)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid session.")
+
+    conn = get_db_connection()
+    records = conn.execute(
+        """
+        SELECT id, responses_json, created_at
+        FROM survey_responses
+        WHERE user_id = ?
+        ORDER BY created_at DESC
+        """,
+        (user["id"],),
+    ).fetchall()
+    conn.close()
+
+    return {
+        "responses": [
+            {
+                "id": record["id"],
+                "responses": json.loads(record["responses_json"]),
+                "created_at": record["created_at"],
+            }
+            for record in records
         ]
     }
 
@@ -596,8 +696,10 @@ def get_groq_food_analysis(image_data: str):
                                 "type": "text",
                                 "text": (
                                     "Analyze this food image. Return JSON with keys: summary (string), foods (array of objects with "
-                                    "name, portion, estimated_calories, micronutrients), total_calories (number or null), "
-                                    "micronutrients (array of strings), limitations (string). Keep it concise."
+                                    "name, portion, estimated_calories, micronutrients where micronutrients is an array of strings with estimated amounts like "
+                                    "'Protein ~ 31 g' or 'Vitamin C ~ 18 mg'), total_calories (number or null), "
+                                    "micronutrients (array of strings with total estimated amounts for the whole meal), limitations (string). "
+                                    "If unsure, still provide rough approximate amounts and say they are estimates."
                                 ),
                             },
                             {

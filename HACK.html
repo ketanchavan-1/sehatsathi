@@ -1734,6 +1734,22 @@
       color: var(--g1);
     }
 
+    .analysis-micro-list {
+      display: grid;
+      gap: 0.45rem;
+      margin-top: 0.4rem;
+    }
+
+    .analysis-micro-item {
+      padding: 0.62rem 0.75rem;
+      border-radius: 0.8rem;
+      background: var(--off);
+      color: var(--dark);
+      font-size: 0.84rem;
+      line-height: 1.45;
+      border: 1px solid rgba(10, 110, 80, 0.08);
+    }
+
     .analysis-total {
       display: inline-flex;
       align-items: center;
@@ -2404,14 +2420,14 @@
         <div id="surveyStep1">
           <h4 style="margin-bottom:1rem;font-size:1.05rem;">Step 1 of 4 — Personal Information</h4>
           <div class="form-row">
-            <div class="form-group"><label class="form-label">Full Name</label><input class="form-input"
+            <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="surveyName"
                 placeholder="Your name" /></div>
-            <div class="form-group"><label class="form-label">Age</label><input class="form-input" type="number"
+            <div class="form-group"><label class="form-label">Age</label><input class="form-input" id="surveyAge" type="number"
                 placeholder="25" /></div>
           </div>
           <div class="form-row">
             <div class="form-group"><label class="form-label">Gender</label>
-              <select class="form-select">
+              <select class="form-select" id="surveyGender">
                 <option>Select gender</option>
                 <option>Male</option>
                 <option>Female</option>
@@ -2419,7 +2435,7 @@
               </select>
             </div>
             <div class="form-group"><label class="form-label">Blood Group</label>
-              <select class="form-select">
+              <select class="form-select" id="surveyBloodGroup">
                 <option>Select</option>
                 <option>A+</option>
                 <option>A-</option>
@@ -2433,9 +2449,9 @@
             </div>
           </div>
           <div class="form-row">
-            <div class="form-group"><label class="form-label">Height (cm)</label><input class="form-input" type="number"
+            <div class="form-group"><label class="form-label">Height (cm)</label><input class="form-input" id="surveyHeight" type="number"
                 placeholder="170" /></div>
-            <div class="form-group"><label class="form-label">Weight (kg)</label><input class="form-input" type="number"
+            <div class="form-group"><label class="form-label">Weight (kg)</label><input class="form-input" id="surveyWeight" type="number"
                 placeholder="65" /></div>
           </div>
           <button class="btn-primary" style="width:100%;justify-content:center;" onclick="nextSurveyStep(2)">Continue
@@ -2445,7 +2461,7 @@
           <h4 style="margin-bottom:1rem;font-size:1.05rem;">Step 2 of 4 — Current Symptoms</h4>
           <p style="font-size:0.87rem;color:var(--muted);margin-bottom:0.75rem;">Select all symptoms you are currently
             experiencing:</p>
-          <div class="symptom-chips">
+          <div class="symptom-chips" id="surveySymptoms">
             <span class="chip" onclick="this.classList.toggle('selected')">Fever</span>
             <span class="chip" onclick="this.classList.toggle('selected')">Headache</span>
             <span class="chip" onclick="this.classList.toggle('selected')">Fatigue</span>
@@ -2465,7 +2481,7 @@
           </div>
           <div class="form-group" style="margin-top:1.25rem;">
             <label class="form-label">Any other symptoms?</label>
-            <textarea class="form-textarea" placeholder="Describe any other symptoms..."></textarea>
+            <textarea class="form-textarea" id="surveyOtherSymptoms" placeholder="Describe any other symptoms..."></textarea>
           </div>
           <div style="display:flex;gap:0.75rem;margin-top:0.5rem;">
             <button class="btn-outline" style="flex:1;justify-content:center;" onclick="nextSurveyStep(1)">←
@@ -2477,7 +2493,7 @@
         <div id="surveyStep3" style="display:none;">
           <h4 style="margin-bottom:1rem;font-size:1.05rem;">Step 3 of 4 — Medical History</h4>
           <div class="form-group"><label class="form-label">Do you have any existing conditions?</label>
-            <select class="form-select">
+            <select class="form-select" id="surveyConditions">
               <option>None</option>
               <option>Diabetes</option>
               <option>Hypertension</option>
@@ -2488,9 +2504,9 @@
             </select>
           </div>
           <div class="form-group"><label class="form-label">Current medications (if any)</label><input
-              class="form-input" placeholder="e.g. Metformin 500mg" /></div>
+              class="form-input" id="surveyMedications" placeholder="e.g. Metformin 500mg" /></div>
           <div class="form-group"><label class="form-label">Family history of major diseases?</label>
-            <select class="form-select">
+            <select class="form-select" id="surveyFamilyHistory">
               <option>None</option>
               <option>Diabetes</option>
               <option>Heart Disease</option>
@@ -2500,7 +2516,7 @@
             </select>
           </div>
           <div class="form-group"><label class="form-label">Lifestyle</label>
-            <select class="form-select">
+            <select class="form-select" id="surveyLifestyle">
               <option>Sedentary (no exercise)</option>
               <option>Lightly active</option>
               <option>Moderately active</option>
@@ -2517,7 +2533,7 @@
         <div id="surveyStep4" style="display:none;">
           <h4 style="margin-bottom:1rem;font-size:1.05rem;">Step 4 of 4 — Lifestyle & Diet</h4>
           <div class="form-group"><label class="form-label">Diet type</label>
-            <select class="form-select">
+            <select class="form-select" id="surveyDietType">
               <option>Vegetarian</option>
               <option>Non-Vegetarian</option>
               <option>Vegan</option>
@@ -2525,7 +2541,7 @@
             </select>
           </div>
           <div class="form-group"><label class="form-label">Daily water intake</label>
-            <select class="form-select">
+            <select class="form-select" id="surveyWaterIntake">
               <option>Less than 1L</option>
               <option>1–2 L</option>
               <option>2–3 L</option>
@@ -2533,7 +2549,7 @@
             </select>
           </div>
           <div class="form-group"><label class="form-label">Sleep duration</label>
-            <select class="form-select">
+            <select class="form-select" id="surveySleep">
               <option>Less than 5 hrs</option>
               <option>5–6 hrs</option>
               <option>7–8 hrs</option>
@@ -2541,7 +2557,7 @@
             </select>
           </div>
           <div class="form-group"><label class="form-label">Smoking / Alcohol</label>
-            <select class="form-select">
+            <select class="form-select" id="surveySmokingAlcohol">
               <option>None</option>
               <option>Occasional alcohol</option>
               <option>Regular alcohol</option>
@@ -2577,6 +2593,7 @@
               →</button>
             <button class="btn-outline" onclick="closeModal('survey-modal')">Close</button>
           </div>
+          <div id="surveySaveStatus" style="margin-top:1rem;color:var(--muted);font-size:0.9rem;"></div>
         </div>
       </div>
     </div>
@@ -2785,6 +2802,18 @@
               </div>
               <div id="savedDietPlans">
                 <p style="color:var(--muted);">No saved diet plans yet. Generate one from the diet planner to see it here.</p>
+              </div>
+            </div>
+
+            <div class="profile-card">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-bottom:0.75rem;">
+                <div>
+                  <h4 style="font-family:var(--font-head);font-size:1.3rem;color:var(--g1);">Saved Survey Responses</h4>
+                  <p style="color:var(--muted);font-size:0.9rem;">Completed health surveys are stored here for your profile.</p>
+                </div>
+              </div>
+              <div id="savedSurveyResponses">
+                <p style="color:var(--muted);">No saved survey responses yet. Submit the health survey to store your answers.</p>
               </div>
             </div>
           </div>
@@ -3196,6 +3225,7 @@
     let authToken = localStorage.getItem('sehatsathi_token') || '';
     let currentUser = null;
     let savedDietPlans = [];
+    let savedSurveyResponses = [];
 
     function escapeHtml(value) {
       return String(value ?? '')
@@ -3295,25 +3325,61 @@
       `).join('');
     }
 
+    function renderSavedSurveyResponses() {
+      const container = document.getElementById('savedSurveyResponses');
+      if (!container) return;
+      if (!savedSurveyResponses.length) {
+        container.innerHTML = '<p style="color:var(--muted);">No saved survey responses yet. Submit the health survey to store your answers.</p>';
+        return;
+      }
+      container.innerHTML = savedSurveyResponses.map(item => {
+        const responses = item.responses || {};
+        const symptoms = Array.isArray(responses.symptoms) ? responses.symptoms.join(', ') : '-';
+        return `
+          <div class="saved-plan">
+            <div class="saved-plan-head">
+              <div>
+                <div class="saved-plan-title">${escapeHtml(responses.name || 'Survey response')}</div>
+                <div style="color:var(--muted);font-size:0.82rem;">Saved on ${escapeHtml(item.created_at || '-')}</div>
+              </div>
+            </div>
+            <div class="saved-plan-meta">
+              <span class="saved-plan-chip">Age: ${escapeHtml(responses.age || '-')}</span>
+              <span class="saved-plan-chip">Gender: ${escapeHtml(responses.gender || '-')}</span>
+              <span class="saved-plan-chip">Lifestyle: ${escapeHtml(responses.lifestyle || '-')}</span>
+            </div>
+            <div class="saved-plan-list">
+              <div class="saved-plan-row"><strong>Symptoms</strong><span>${escapeHtml(symptoms || '-')}</span><span></span></div>
+              <div class="saved-plan-row"><strong>Conditions</strong><span>${escapeHtml(responses.conditions || '-')}</span><span></span></div>
+              <div class="saved-plan-row"><strong>Diet / Sleep</strong><span>${escapeHtml(responses.diet_type || '-')} / ${escapeHtml(responses.sleep || '-')}</span><span></span></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
     async function loadProfileData() {
       if (!authToken) {
         currentUser = null;
         savedDietPlans = [];
+        savedSurveyResponses = [];
         updateProfileButton();
         return false;
       }
 
       try {
-        const [profileRes, plansRes] = await Promise.all([
+        const [profileRes, plansRes, surveysRes] = await Promise.all([
           fetch(`/profile?token=${encodeURIComponent(authToken)}`),
-          fetch(`/diet-plans?token=${encodeURIComponent(authToken)}`)
+          fetch(`/diet-plans?token=${encodeURIComponent(authToken)}`),
+          fetch(`/survey-responses?token=${encodeURIComponent(authToken)}`)
         ]);
 
-        if (profileRes.status === 401 || plansRes.status === 401) {
+        if (profileRes.status === 401 || plansRes.status === 401 || surveysRes.status === 401) {
           localStorage.removeItem('sehatsathi_token');
           authToken = '';
           currentUser = null;
           savedDietPlans = [];
+          savedSurveyResponses = [];
           updateProfileButton();
           showProfileMessage('Your session expired. Please sign in again.', 'error');
           showProfileSection('login');
@@ -3322,10 +3388,13 @@
 
         const profileData = await profileRes.json();
         const plansData = await plansRes.json();
+        const surveysData = await surveysRes.json();
         currentUser = profileData.user || null;
         savedDietPlans = plansData.plans || [];
+        savedSurveyResponses = surveysData.responses || [];
         renderProfile();
         renderSavedDietPlans();
+        renderSavedSurveyResponses();
         updateProfileButton();
         return true;
       } catch (error) {
@@ -3382,9 +3451,11 @@
         authToken = data.token || '';
         currentUser = data.user || null;
         savedDietPlans = [];
+        savedSurveyResponses = [];
         localStorage.setItem('sehatsathi_token', authToken);
         renderProfile();
         renderSavedDietPlans();
+        renderSavedSurveyResponses();
         updateProfileButton();
         showProfileSection('dashboard');
         showProfileMessage('Profile created and signed in successfully.', 'info');
@@ -3431,8 +3502,10 @@
       authToken = '';
       currentUser = null;
       savedDietPlans = [];
+      savedSurveyResponses = [];
       updateProfileButton();
       renderSavedDietPlans();
+      renderSavedSurveyResponses();
       showProfileSection('login');
       showProfileMessage('You have been logged out.', 'info');
 
@@ -3470,8 +3543,12 @@
           }
           return { saved: false, reason: 'error', message: data.detail || 'Could not save the diet plan.' };
         }
-        await loadProfileData();
-        return { saved: true };
+        if (data.plan) {
+          savedDietPlans = [data.plan, ...savedDietPlans.filter(planItem => planItem.id !== data.plan.id)];
+          renderSavedDietPlans();
+        }
+        loadProfileData();
+        return { saved: true, plan: data.plan || null };
       } catch (error) {
         return { saved: false, reason: 'error', message: 'Could not connect to save your diet plan.' };
       }
@@ -3486,10 +3563,85 @@
         currentStep = step;
       }
     }
-    function submitSurvey() {
+
+    function collectSurveyResponses() {
+      return {
+        name: document.getElementById('surveyName')?.value.trim() || '',
+        age: document.getElementById('surveyAge')?.value.trim() || '',
+        gender: document.getElementById('surveyGender')?.value || '',
+        blood_group: document.getElementById('surveyBloodGroup')?.value || '',
+        height_cm: document.getElementById('surveyHeight')?.value.trim() || '',
+        weight_kg: document.getElementById('surveyWeight')?.value.trim() || '',
+        symptoms: Array.from(document.querySelectorAll('#surveySymptoms .chip.selected')).map(chip => chip.textContent.trim()),
+        other_symptoms: document.getElementById('surveyOtherSymptoms')?.value.trim() || '',
+        conditions: document.getElementById('surveyConditions')?.value || '',
+        medications: document.getElementById('surveyMedications')?.value.trim() || '',
+        family_history: document.getElementById('surveyFamilyHistory')?.value || '',
+        lifestyle: document.getElementById('surveyLifestyle')?.value || '',
+        diet_type: document.getElementById('surveyDietType')?.value || '',
+        water_intake: document.getElementById('surveyWaterIntake')?.value || '',
+        sleep: document.getElementById('surveySleep')?.value || '',
+        smoking_alcohol: document.getElementById('surveySmokingAlcohol')?.value || ''
+      };
+    }
+
+    async function saveSurveyResponse(responses) {
+      if (!authToken) return { saved: false, reason: 'not_logged_in' };
+      try {
+        const res = await fetch('/survey-responses', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: authToken, responses })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          if (res.status === 401) {
+            localStorage.removeItem('sehatsathi_token');
+            authToken = '';
+            currentUser = null;
+            savedDietPlans = [];
+            savedSurveyResponses = [];
+            updateProfileButton();
+            renderSavedDietPlans();
+            renderSavedSurveyResponses();
+            return { saved: false, reason: 'expired', message: data.detail || 'Session expired.' };
+          }
+          return { saved: false, reason: 'error', message: data.detail || 'Could not save the survey response.' };
+        }
+        if (data.response) {
+          savedSurveyResponses = [data.response, ...savedSurveyResponses.filter(item => item.id !== data.response.id)];
+          renderSavedSurveyResponses();
+        }
+        loadProfileData();
+        return { saved: true };
+      } catch (error) {
+        return { saved: false, reason: 'error', message: 'Could not connect to save your survey response.' };
+      }
+    }
+
+    async function submitSurvey() {
+      const saveStatus = document.getElementById('surveySaveStatus');
+      if (saveStatus) saveStatus.textContent = '';
       document.getElementById('surveyStep4').style.display = 'none';
       document.getElementById('surveyResult').style.display = 'block';
       document.getElementById('surveyProgress').style.width = '100%';
+
+      const responses = collectSurveyResponses();
+      if (!saveStatus) return;
+      if (!authToken) {
+        saveStatus.innerHTML = `Sign in from <a href="#" onclick="openProfileModal();return false;" style="color:var(--g1);font-weight:700;">your profile</a> to save this survey.`;
+        return;
+      }
+
+      saveStatus.textContent = 'Saving your survey response...';
+      const result = await saveSurveyResponse(responses);
+      if (result.saved) {
+        saveStatus.textContent = 'Survey response saved to your profile.';
+      } else if (result.reason === 'expired') {
+        saveStatus.innerHTML = `Your session expired. <a href="#" onclick="openProfileModal();return false;" style="color:var(--g1);font-weight:700;">Sign in again</a> to save surveys.`;
+      } else {
+        saveStatus.textContent = result.message || 'Could not save your survey response right now.';
+      }
     }
 
     // ─── DIET ───
@@ -3754,10 +3906,10 @@
               <div class="saved-plan-chip">${escapeHtml(food.estimated_calories || 'Calories unavailable')}</div>
             </div>
             <div style="font-size:0.88rem;color:var(--muted);margin-bottom:0.55rem;">Portion: ${escapeHtml(food.portion || 'Approximate')}</div>
-            <div class="food-macros">${(food.micronutrients || []).map(item => `<span class="macro">${escapeHtml(item)}</span>`).join('')}</div>
+            ${(food.micronutrients || []).length ? `<div class="analysis-micro-list">${food.micronutrients.map(item => `<div class="analysis-micro-item">${escapeHtml(item)}</div>`).join('')}</div>` : '<div style="font-size:0.84rem;color:var(--muted);">Micronutrient amounts unavailable for this item.</div>'}
           </div>
         `).join('')}</div>` : ''}
-        ${micros.length ? `<div style="margin-top:0.95rem;"><div style="font-weight:700;color:var(--g1);margin-bottom:0.45rem;">Likely micronutrients</div><div class="food-macros">${micros.map(item => `<span class="macro">${escapeHtml(item)}</span>`).join('')}</div></div>` : ''}
+        ${micros.length ? `<div style="margin-top:0.95rem;"><div style="font-weight:700;color:var(--g1);margin-bottom:0.45rem;">Estimated meal micronutrients</div><div class="analysis-micro-list">${micros.map(item => `<div class="analysis-micro-item">${escapeHtml(item)}</div>`).join('')}</div></div>` : ''}
         ${data.limitations ? `<div style="margin-top:0.95rem;font-size:0.84rem;color:var(--muted);">${escapeHtml(data.limitations)}</div>` : ''}
       `;
     }
