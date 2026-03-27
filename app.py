@@ -507,6 +507,8 @@ def get_common_case_prediction(symptoms):
         "joint/muscle pain",
         "muscle pain",
         "nausea/vomiting",
+        "nausea",
+        "vomiting",
         "abdominal pain",
         "stomach pain",
         "diarrhoea",
@@ -525,8 +527,14 @@ def get_common_case_prediction(symptoms):
         return ["Common Viral Fever", "Common Cold / Seasonal Allergies"]
     if {"itching", "skin rash"}.issubset(symptom_set):
         return ["Common Skin Allergy", "Fungal infection"]
+    if {"vomiting", "diarrhoea"}.issubset(symptom_set) and ("abdominal pain" in symptom_set or "stomach pain" in symptom_set):
+        return ["Food Poisoning", "Gastroenteritis"]
+    if {"vomiting", "diarrhoea"}.issubset(symptom_set):
+        return ["Gastroenteritis", "Food Poisoning"]
     if {"nausea/vomiting", "abdominal pain"}.issubset(symptom_set) or {"nausea/vomiting", "stomach pain"}.issubset(symptom_set):
         return ["Common Indigestion or Acid Reflux", "Food Poisoning"]
+    if {"vomiting", "abdominal pain"}.issubset(symptom_set) or {"vomiting", "stomach pain"}.issubset(symptom_set):
+        return ["Food Poisoning", "Gastroenteritis"]
     if {"fatigue", "severe headache"}.issubset(symptom_set):
         return ["General Fatigue / Stress", "Common Headache"]
     if "cough" in symptom_set and "severe headache" in symptom_set:
@@ -613,6 +621,56 @@ def reorder_predictions_for_common_symptoms(symptoms, predictions):
         adjusted[disease] = score
 
     return dict(sorted(adjusted.items(), key=lambda item: item[1], reverse=True))
+
+
+def build_prediction_candidate_pool(symptoms, ml_candidates=None):
+    """Build a broader but still controlled candidate list for final prediction refinement."""
+    symptom_set = set(symptoms)
+    candidate_pool = []
+
+    common_case_predictions = get_common_case_prediction(symptoms) or []
+    for disease in common_case_predictions:
+        if disease not in candidate_pool:
+            candidate_pool.append(disease)
+
+    if {"continuous sneezing", "cough"}.issubset(symptom_set) or {"runny nose", "congestion"}.issubset(symptom_set):
+        for disease in ["Common Cold / Seasonal Allergies", "Common Viral Fever", "Sinusitis", "Seasonal Viral Infection"]:
+            if disease not in candidate_pool:
+                candidate_pool.append(disease)
+
+    if {"high fever", "severe headache"}.issubset(symptom_set) or {"high fever", "cough"}.issubset(symptom_set):
+        for disease in ["Common Viral Fever", "Seasonal Viral Infection", "Viral Fever", "Common Cold / Seasonal Allergies"]:
+            if disease not in candidate_pool:
+                candidate_pool.append(disease)
+
+    if {"vomiting", "diarrhoea"}.issubset(symptom_set) and ("abdominal pain" in symptom_set or "stomach pain" in symptom_set):
+        for disease in ["Food Poisoning", "Gastroenteritis", "Common Indigestion or Acid Reflux"]:
+            if disease not in candidate_pool:
+                candidate_pool.append(disease)
+    elif {"vomiting", "diarrhoea"}.issubset(symptom_set):
+        for disease in ["Gastroenteritis", "Food Poisoning"]:
+            if disease not in candidate_pool:
+                candidate_pool.append(disease)
+    elif {"vomiting", "abdominal pain"}.issubset(symptom_set) or {"vomiting", "stomach pain"}.issubset(symptom_set):
+        for disease in ["Food Poisoning", "Common Indigestion or Acid Reflux", "Gastroenteritis"]:
+            if disease not in candidate_pool:
+                candidate_pool.append(disease)
+
+    if {"itching", "skin rash"}.issubset(symptom_set):
+        for disease in ["Common Skin Allergy", "Fungal infection"]:
+            if disease not in candidate_pool:
+                candidate_pool.append(disease)
+
+    if "severe headache" in symptom_set or "headache" in symptom_set:
+        for disease in ["Common Headache", "Migraine", "General Fatigue / Stress"]:
+            if disease not in candidate_pool:
+                candidate_pool.append(disease)
+
+    for disease in ml_candidates or []:
+        if disease not in candidate_pool:
+            candidate_pool.append(disease)
+
+    return candidate_pool[:8]
 
 def get_groq_advice(symptoms, predicted_diseases):
     """Use Groq to generate a brief explanation and health advice."""
@@ -752,6 +810,58 @@ def get_groq_food_analysis(image_data: str):
         return fallback, False, str(e)
 
 
+def get_groq_refined_predictions(symptoms, candidate_diseases):
+    """Use Groq to rerank or replace weak candidates from a controlled candidate pool."""
+    if not GROQ_API_KEY or not candidate_diseases:
+        return candidate_diseases, False
+
+    fallback = list(candidate_diseases)
+    try:
+        prompt = (
+            "You are reviewing disease-prediction candidates for a healthcare app.\n"
+            f"Reported symptoms: {', '.join(symptoms)}\n"
+            f"Candidate diseases from the ML system: {', '.join(candidate_diseases)}\n\n"
+            "Return strict JSON with one key: predictions (an array of up to 3 disease names chosen only from the candidate list).\n"
+            "If the top ML candidates are a poor fit, replace them with better-fitting diseases from the candidate list.\n"
+            "Prefer common benign conditions for common symptoms, and avoid severe or rare diseases unless the symptom pattern strongly supports them."
+        )
+        response = requests.post(
+            GROQ_API_URL,
+            headers={
+                "Authorization": f"Bearer {GROQ_API_KEY}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": GROQ_MODEL,
+                "temperature": 0.1,
+                "response_format": {"type": "json_object"},
+                "messages": [
+                    {"role": "system", "content": "You rerank disease candidates and return strict JSON only."},
+                    {"role": "user", "content": prompt},
+                ],
+                "max_completion_tokens": 250,
+            },
+            timeout=20,
+        )
+        response.raise_for_status()
+        data = response.json()
+        content = (
+            data.get("choices", [{}])[0]
+            .get("message", {})
+            .get("content", "")
+        )
+        parsed = extract_json_object(content) or {}
+        reranked = parsed.get("predictions") or []
+        cleaned = [item for item in reranked if item in candidate_diseases]
+        if cleaned:
+            remaining = [item for item in candidate_diseases if item not in cleaned]
+            return cleaned + remaining, True
+        return fallback, False
+    except Exception as e:
+        print(f"Groq prediction refinement error: {e}")
+        return fallback, False
+
+
 @app.post("/analyze-food-image")
 def analyze_food_image(req: FoodImageRequest):
     if not req.image_data or not req.image_data.strip():
@@ -828,6 +938,11 @@ def predict_disease_api(req: PredictRequest):
         "tap": "high fever",
         "bukhar": "high fever",
         "ghamoriya": "skin rash",
+        "ulti": "vomiting",
+        "julab": "diarrhoea",
+        "pot dukhi": "abdominal pain",
+        "potdukhi": "abdominal pain",
+        "pot dard": "abdominal pain",
     }
     
     devanagari_map = {
@@ -844,6 +959,11 @@ def predict_disease_api(req: PredictRequest):
         "पेट दर्द": "abdominal pain",
         "पेटातील दुखणे": "abdominal pain",
     }
+
+    devanagari_map["पोटदुखी"] = "abdominal pain"
+    devanagari_map["पोट दुखी"] = "abdominal pain"
+    devanagari_map["उलटी"] = "vomiting"
+    devanagari_map["जुलाब"] = "diarrhoea"
 
     for k, v in voice_map.items():
         if k in text_lower:
@@ -930,11 +1050,17 @@ def predict_disease_api(req: PredictRequest):
 
     common_case_predictions = get_common_case_prediction(valid_symptoms)
     if common_case_predictions:
-        advice, advice_available, advice_error = get_groq_advice(valid_symptoms, common_case_predictions)
+        common_candidate_pool = build_prediction_candidate_pool(valid_symptoms, common_case_predictions[:3])
+        refined_common_predictions, _ = get_groq_refined_predictions(
+            valid_symptoms,
+            common_candidate_pool
+        )
+        final_common_predictions = refined_common_predictions[:3] or common_case_predictions[:3]
+        advice, advice_available, advice_error = get_groq_advice(valid_symptoms, final_common_predictions)
         return {
             "detected_language": lang,
             "matched_symptoms": valid_symptoms,
-            "predictions": [{"disease": disease_name} for disease_name in common_case_predictions[:3]],
+            "predictions": [{"disease": disease_name} for disease_name in final_common_predictions],
             "advice": advice,
             "advice_available": advice_available,
             "advice_error": advice_error
@@ -942,14 +1068,16 @@ def predict_disease_api(req: PredictRequest):
         
     predictions = ml2.predict_disease(valid_symptoms, model, mlb, label_encoder)
     predictions = reorder_predictions_for_common_symptoms(valid_symptoms, predictions)
+
+    ml_candidates = [disease for disease, _ in list(predictions.items())[:6]]
+    candidate_diseases = build_prediction_candidate_pool(valid_symptoms, ml_candidates)
+    refined_candidate_diseases, _ = get_groq_refined_predictions(valid_symptoms, candidate_diseases)
+    final_candidate_diseases = refined_candidate_diseases[:3] or candidate_diseases[:3]
     
     # Format top 3 results
     top_results = []
     disease_names = []
-    items = list(predictions.items())
-    for i, (disease, prob) in enumerate(items):
-        if i >= 3:
-            break
+    for disease in final_candidate_diseases:
         display_name = ml2.translate_disease_to_lang(disease, translations, lang)
         top_results.append({"disease": display_name})
         disease_names.append(display_name)
