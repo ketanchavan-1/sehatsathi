@@ -734,6 +734,14 @@
       margin-top: auto;
     }
 
+    #profile-modal .modal-header .tool-card {
+      display: none;
+    }
+
+    #home .tool-card[onclick*="food-photo-modal"] {
+      display: none;
+    }
+
     /* ─── FEATURES ─── */
     .features-grid {
       display: grid;
@@ -1984,6 +1992,17 @@
             AI Health Engine — Active
           </div>
         </div>
+        <div class="tool-card reveal delay-2" onclick="openModal('food-photo-modal')">
+          <div class="tool-icon">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M4 7h4l2-2h4l2 2h4v12H4z" />
+              <circle cx="12" cy="13" r="3.5" />
+            </svg>
+          </div>
+          <h3>Food Photo Analyzer</h3>
+          <p>Upload a meal image to estimate visible foods, calories, and likely micronutrients with AI-powered image analysis.</p>
+          <span class="arrow-btn">Analyze Photo â†’</span>
+        </div>
       </div>
     </div>
   </section>
@@ -2174,6 +2193,28 @@
   </section>
 
   <!-- ═══════════════ HOW IT WORKS ═══════════════ -->
+  <section class="section section-alt">
+    <div class="section-inner">
+      <div class="section-head">
+        <h2>Food Photo <em>Analyzer</em></h2>
+        <p>Upload a meal image and let Sehat Sathi estimate visible foods, calories, and likely micronutrients.</p>
+      </div>
+      <div class="tools-grid">
+        <div class="tool-card reveal delay-2" onclick="openModal('food-photo-modal')">
+          <div class="tool-icon">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M4 7h4l2-2h4l2 2h4v12H4z" />
+              <circle cx="12" cy="13" r="3.5" />
+            </svg>
+          </div>
+          <h3>Analyze Food from a Photo</h3>
+          <p>Take or upload a food image to estimate what is on the plate, approximate calories, and likely micronutrient highlights.</p>
+          <span class="arrow-btn">Open Analyzer â†’</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="section section-white" id="how">
     <div class="section-inner">
       <div class="section-head">
@@ -2321,6 +2362,7 @@
           <a href="#" onclick="openModal('survey-modal');return false;">Health Survey</a>
           <a href="#" onclick="openModal('diet-modal');return false;">Diet Plan</a>
           <a href="#" onclick="openModal('diet-info-modal');return false;">Diet Info</a>
+          <a href="#" onclick="openModal('food-photo-modal');return false;">Food Photo Analyzer</a>
           <a href="#" onclick="openModal('predictor-modal');return false;">Disease Predictor</a>
           <a href="#" onclick="openModal('predictor-modal');switchPdTab('voice');return false;">Voice Assistant</a>
           <a href="#" onclick="openModal('bmi-modal');return false;">BMI Calculator</a>
@@ -2614,6 +2656,17 @@
       <div class="modal-header">
         <h3>User Profile</h3>
         <button class="modal-close" onclick="closeModal('profile-modal')">X</button>
+        <div class="tool-card reveal delay-2" onclick="openModal('food-photo-modal')">
+          <div class="tool-icon">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M4 7h4l2-2h4l2 2h4v12H4z" />
+              <circle cx="12" cy="13" r="3.5" />
+            </svg>
+          </div>
+          <h3>Food Photo Analyzer</h3>
+          <p>Upload a meal image to estimate visible foods, calories, and likely micronutrients with AI-powered image analysis.</p>
+          <span class="arrow-btn">Analyze Photo â†’</span>
+        </div>
       </div>
       <div class="modal-body">
         <div class="profile-shell">
@@ -2740,14 +2793,14 @@
     </div>
   </div>
 
-  <div class="modal-overlay" id="diet-info-modal">
+  <div class="modal-overlay" id="food-photo-modal">
     <div class="modal">
       <div class="modal-header">
-        <h3>🔍 Nutrition Information</h3>
-        <button class="modal-close" onclick="closeModal('diet-info-modal')">✕</button>
+        <h3>Food Photo Analyzer</h3>
+        <button class="modal-close" onclick="closeModal('food-photo-modal')">X</button>
       </div>
       <div class="modal-body">
-        <div class="photo-analyzer">
+        <div class="photo-analyzer" style="margin-bottom:0;">
           <h4>Analyze Food from a Photo</h4>
           <p style="color:var(--muted);font-size:0.9rem;">Upload a meal photo to estimate visible foods, calories, and likely micronutrients.</p>
           <div class="form-row" style="margin-top:0.9rem;align-items:end;">
@@ -2763,6 +2816,17 @@
           <div id="foodPhotoStatus" style="margin-top:0.8rem;color:var(--muted);font-size:0.88rem;"></div>
           <div id="foodPhotoAnalysis" class="photo-analysis-result"></div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="diet-info-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>🔍 Nutrition Information</h3>
+        <button class="modal-close" onclick="closeModal('diet-info-modal')">✕</button>
+      </div>
+      <div class="modal-body">
         <div class="food-search">
           <input class="form-input" id="foodSearch" placeholder="Search food (e.g. Apple, Rice, Chicken…)"
             oninput="searchFood(this.value)" />
