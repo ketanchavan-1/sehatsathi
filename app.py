@@ -103,8 +103,8 @@ def get_common_case_prediction(symptoms):
     if symptom_set & red_flag_symptoms:
         return None
 
+    fever_variants = {"fever (>101Â°f)", "fever (>101°f)"}
     common_symptom_pool = {
-        "fever (>101Â°f)",
         "high fever",
         "mild fever",
         "severe headache",
@@ -125,14 +125,15 @@ def get_common_case_prediction(symptoms):
         "itching",
         "skin rash",
     }
+    common_symptom_pool.update(fever_variants)
     if len(symptom_set) > 4 or not symptom_set.issubset(common_symptom_pool):
         return None
 
     if {"continuous sneezing", "cough"}.issubset(symptom_set) or {"runny nose", "congestion"}.issubset(symptom_set):
         return ["Common Cold / Seasonal Allergies", "Common Viral Fever"]
-    if {"high fever", "severe headache"}.issubset(symptom_set) or {"fever (>101Â°f)", "severe headache"}.issubset(symptom_set):
+    if {"high fever", "severe headache"}.issubset(symptom_set) or any({variant, "severe headache"}.issubset(symptom_set) for variant in fever_variants):
         return ["Common Viral Fever", "Seasonal Viral Infection"]
-    if {"high fever", "cough"}.issubset(symptom_set) or {"fever (>101Â°f)", "cough"}.issubset(symptom_set):
+    if {"high fever", "cough"}.issubset(symptom_set) or any({variant, "cough"}.issubset(symptom_set) for variant in fever_variants):
         return ["Common Viral Fever", "Common Cold / Seasonal Allergies"]
     if {"itching", "skin rash"}.issubset(symptom_set):
         return ["Common Skin Allergy", "Fungal infection"]
@@ -142,13 +143,88 @@ def get_common_case_prediction(symptoms):
         return ["General Fatigue / Stress", "Common Headache"]
     if "cough" in symptom_set and "severe headache" in symptom_set:
         return ["Common Viral Fever", "Common Cold / Seasonal Allergies"]
-    if "high fever" in symptom_set or "fever (>101Â°f)" in symptom_set:
+    if "high fever" in symptom_set or any(variant in symptom_set for variant in fever_variants):
         return ["Common Viral Fever"]
     if "cough" in symptom_set:
         return ["Common Cold / Seasonal Allergies"]
     if "severe headache" in symptom_set or "headache" in symptom_set:
         return ["Common Headache"]
     return None
+
+
+def reorder_predictions_for_common_symptoms(symptoms, predictions):
+    """Demote rare/severe diseases for very common low-risk symptom clusters."""
+    symptom_set = set(symptoms)
+    fever_variants = {"fever (>101Â°f)", "fever (>101°f)"}
+    common_symptom_pool = {
+        "high fever",
+        "mild fever",
+        "severe headache",
+        "headache",
+        "cough",
+        "fatigue",
+        "malaise",
+        "continuous sneezing",
+        "runny nose",
+        "congestion",
+        "throat irritation",
+        "joint/muscle pain",
+        "muscle pain",
+        "nausea/vomiting",
+        "abdominal pain",
+        "stomach pain",
+        "diarrhoea",
+        "itching",
+        "skin rash",
+    }
+    common_symptom_pool.update(fever_variants)
+    red_flag_symptoms = {
+        "chest pain",
+        "breathlessness",
+        "blood in sputum",
+        "weight loss",
+        "yellowing of eyes",
+        "yellowish skin",
+        "weakness of one body side",
+        "slurred speech",
+    }
+    if len(symptom_set) > 4 or not symptom_set.issubset(common_symptom_pool) or symptom_set & red_flag_symptoms:
+        return predictions
+
+    deprioritize = {
+        "AIDS",
+        "hepatitis A",
+        "Hepatitis B",
+        "Hepatitis C",
+        "Hepatitis D",
+        "Hepatitis E",
+        "Paralysis (brain hemorrhage)",
+        "Heart attack",
+        "Tuberculosis",
+    }
+    boosted = {
+        "Common Cold",
+        "Common Viral Fever",
+        "Viral Fever",
+        "Sinusitis",
+        "Migraine",
+        "Gastroenteritis",
+        "Food Poisoning",
+        "Fungal infection",
+        "Allergy",
+        "Bronchial Asthma",
+    }
+
+    adjusted = {}
+    for disease, prob in predictions.items():
+        score = float(prob)
+        if disease in deprioritize:
+            score *= 0.05
+        if disease in boosted:
+            score *= 1.5
+        adjusted[disease] = score
+
+    return dict(sorted(adjusted.items(), key=lambda item: item[1], reverse=True))
 
 def get_gemini_advice(symptoms, predicted_diseases):
     """Use Gemini 2.0 Flash to generate a brief explanation and health advice."""
@@ -301,7 +377,7 @@ def predict_disease_api(req: PredictRequest):
             
     for symptom in mlb_classes:
         if symptom in text_lower:
-            user_symptoms.append(symptom)
+            user_symptoms.append(symptom.strip())
             
     # Also check hindi/marathi matched (without lowercasing Devanagari)
     if translations:
@@ -315,7 +391,7 @@ def predict_disease_api(req: PredictRequest):
                 user_symptoms.append(eng_symptom)
             
     # Deduplicate
-    valid_symptoms = list(set(user_symptoms))
+    valid_symptoms = sorted({symptom.strip() for symptom in user_symptoms if symptom and symptom.strip()})
     
     if not valid_symptoms:
         raise HTTPException(status_code=400, detail=f"No recognizable symptoms found in: '{text}'. Please try to be more specific (e.g., 'fever', 'headache').")
@@ -360,6 +436,7 @@ def predict_disease_api(req: PredictRequest):
         }
         
     predictions = ml2.predict_disease(valid_symptoms, model, mlb, label_encoder)
+    predictions = reorder_predictions_for_common_symptoms(valid_symptoms, predictions)
     
     # Format top 3 results
     top_results = []
