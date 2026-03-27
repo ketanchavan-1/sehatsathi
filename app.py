@@ -874,8 +874,11 @@ def get_groq_refined_predictions(symptoms, candidate_diseases):
             f"Reported symptoms: {', '.join(symptoms)}\n"
             f"Candidate diseases from the ML system: {', '.join(candidate_diseases)}\n\n"
             "Return strict JSON with one key: predictions (an array of up to 3 disease names chosen only from the candidate list).\n"
+            "The order of the returned predictions is the final ranking, with the best-supported disease first.\n"
             "If the top ML candidates are a poor fit, replace them with better-fitting diseases from the candidate list.\n"
             "Prefer common benign conditions for common symptoms, and avoid severe or rare diseases unless the symptom pattern strongly supports them.\n"
+            "Do not keep a common disease at rank 1 just because it is common. If another candidate fits the symptoms better, move the common disease lower.\n"
+            "Do not preserve the original candidate order unless it already makes the most clinical sense.\n"
             f"Red-flag symptoms present: {'yes' if has_red_flags else 'no'}.\n"
             "If red-flag symptoms are present, do not force common benign diseases above serious fitting conditions."
         )
