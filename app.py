@@ -1,14 +1,16 @@
 from fastapi import FastAPI, HTTPException  # type: ignore
 from pydantic import BaseModel  # type: ignore
 from fastapi.middleware.cors import CORSMiddleware  # type: ignore
+from fastapi.responses import FileResponse  # type: ignore
 import uvicorn  # type: ignore
 import ml2  # type: ignore
 import google.generativeai as genai  # type: ignore
 import os
+import joblib  # type: ignore
 from google.api_core.exceptions import GoogleAPICallError  # type: ignore
 
 # Configure Gemini API
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyB2F7HjpK8gsbuwu0m3t6JKNpkf1Fa8ze8")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 gemini_model = None
 
 if GEMINI_API_KEY:
@@ -44,15 +46,32 @@ def load_ml_components():
     global model, mlb, label_encoder, translations
     print("Loading translations...")
     translations = ml2.load_translations()
-    
-    # Check if pre-trained joblib/pkl exists?
-    # Actually, ml2 trains from scratch right now, let's keep it consistent
-    # It takes ~1-2 seconds on startup, which is fine
-    print("Loading dataset (version 1).xlsx...")
-    df = ml2.load_data("dataset (version 1).xlsx")
-    print("Training XGBoost model in memory...")
-    model, mlb, label_encoder = ml2.train_model(df)
+
+    model_path = "disease_model.joblib"
+    mlb_path = "mlb.joblib"
+    label_encoder_path = "label_encoder.joblib"
+
+    if all(os.path.exists(path) for path in [model_path, mlb_path, label_encoder_path]):
+        print("Loading pre-trained model artifacts...")
+        model = joblib.load(model_path)
+        mlb = joblib.load(mlb_path)
+        label_encoder = joblib.load(label_encoder_path)
+    else:
+        print("Loading dataset (version 1).xlsx...")
+        df = ml2.load_data("dataset (version 1).xlsx")
+        print("Training XGBoost model in memory...")
+        model, mlb, label_encoder = ml2.train_model(df)
     print("Backend ready.")
+
+
+@app.get("/")
+def home():
+    return FileResponse("HACK.html")
+
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
 
 def build_fallback_advice(symptoms, predicted_diseases):
     """Provide basic non-Gemini guidance when the API is unavailable."""
@@ -255,4 +274,5 @@ def predict_disease_api(req: PredictRequest):
     }
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    port = int(os.getenv("PORT", "8000"))
+    uvicorn.run(app, host="0.0.0.0", port=port)

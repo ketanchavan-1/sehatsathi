@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+pandas
+numpy
+scikit-learn
+xgboost
+openpyxl
+google-generativeai
+google-api-core
+joblib
+scipy
+sounddevice
+SpeechRecognition
